@@ -1,6 +1,8 @@
 #ifndef TIMER_DRIVER
 #define TIMER_DRIVER
 
+#include <stdint.h>
+
 /**
  * Timer context structure typedef
  */
@@ -48,6 +50,16 @@ void DestroyAllTimers();
  * \return Status of the given timer
  */
 TimerStatus GetTimerStatus(TimerInstance*);
+
+/**
+ * Provides the given timer's system clock source enumerator
+ */
+int GetTimerClockSource(TimerInstance*);
+
+/**
+ * Provides the given timer's compare match value
+ */
+uint8_t GetTimerCompareMatch(TimerInstance*);
 
 /**
  * Starts the given timer, if not already running

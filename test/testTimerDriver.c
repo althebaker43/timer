@@ -107,35 +107,67 @@ enum PRR_Bits
   PRTIM1
 };
 
-unsigned int System_TimerHWPrescalers [SYSTEM_NUM_TIMER_PRESCALERS] = {
-  0,
-  8,
-  64,
-  256,
-  1024
-};
-
-inline void System_TimerSelectClock(
-    int clockSource
+inline unsigned int System_TimerGetSourceFrequency(
+    System_TimerClockSource clockSource
     )
 {
   switch (clockSource)
   {
-    case TIMER_CLOCK_SELECT_OFF:        TCCR0B = 0; break;
-    case TIMER_CLOCK_SELECT_ON:         TCCR0B = (1<<CS00); break;
-    case TIMER_CLOCK_SELECT_ON_PRE8:    TCCR0B = (1<<CS01); break;
-    case TIMER_CLOCK_SELECT_ON_PRE64:   TCCR0B = (1<<CS01) | (1<<CS00); break;
-    case TIMER_CLOCK_SELECT_ON_PRE256:  TCCR0B = (1<<CS02); break;
-    case TIMER_CLOCK_SELECT_ON_PRE1024: TCCR0B = (1<<CS02) | (1<<CS00); break;
-    default: break;
+    case SYSTEM_TIMER_CLKSOURCE_INT:          return 1000000; break;
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE8:     return 125000; break;
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE64:    return 15625; break;
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE256:   return 3906; break; // rounded from 3906.25
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE1024:  return 977; break;  // rounded from 976.5625
+    default:
+      return 0;
+      break;
   };
 }
 
-inline void System_TimerSetOutputCompare(
-    char compareValue
+inline int System_TimerSetClockSource(
+    System_TimerClockSource clockSource
+    )
+{
+  switch (clockSource)
+  {
+    case SYSTEM_TIMER_CLKSOURCE_OFF:
+      TCCR0B = 0;
+      break;
+
+    case SYSTEM_TIMER_CLKSOURCE_INT:
+      TCCR0B = (1<<CS00);
+      break;
+
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE8:
+      TCCR0B = (1<<CS01);
+      break;
+
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE64:
+      TCCR0B = (1<<CS01) | (1<<CS00);
+      break;
+
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE256:
+      TCCR0B = (1<<CS02);
+      break;
+
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE1024:
+      TCCR0B = (1<<CS02) | (1<<CS00);
+      break;
+
+    default:
+      return FALSE;
+      break;
+  };
+
+  return TRUE;
+}
+
+inline int System_TimerSetCompareMatch(
+    uint8_t compareValue
     )
 {
   OCR0A = compareValue;
+  return TRUE;
 }
 
 static void testCreateAllTimers()
@@ -338,17 +370,28 @@ TEST(TimerDriver, SetCycleTimeMilliSec)
   TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 100));
   TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(97, OCR0A);
+  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(97, GetTimerCompareMatch(timers[0]));
 
   TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 1));
   TEST_ASSERT_EQUAL_UINT8(0x02, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(125, OCR0A);
+  TEST_ASSERT_EQUAL_UINT8(125, GetTimerCompareMatch(timers[0]));
+  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE8, GetTimerClockSource(timers[0]));
 
   // Maximum number of milliseconds
   TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 262));
   TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(255, OCR0A);
+  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(255, GetTimerCompareMatch(timers[0]));
 
   TEST_ASSERT_FALSE(SetTimerCycleTimeMilliSec(timers[0], 263));
 
   TEST_ASSERT_FALSE(SetTimerCycleTimeMilliSec(timers[0], 0));
+}
+
+TEST(TimerDriver, SetCycleTimeSec)
+{
+  TEST_IGNORE();
 }

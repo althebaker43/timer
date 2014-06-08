@@ -2,9 +2,16 @@
 #include "TargetSystem.h"
 #include <stdlib.h>
 
+/**
+ * Minimum frequency for a millisecond counter
+ */
+#define MAX_IDEAL_FREQ_MS_COUNTER 256000  // 1000 Hz * 256 (timer bit-width)
+
 struct TimerInstance_struct
 {
-  TimerStatus status; /**< Current status of the timer */
+  TimerStatus             status;       /**< Current status of the timer */
+  System_TimerClockSource clockSource;  /**< Clock source currently used for this timer */
+  uint8_t                 compareMatch; /**< Value to trigger a compare match on */
 };
 
 static int timersInitialized = FALSE;
@@ -133,18 +140,30 @@ GetTimerStatus(TimerInstance* instance)
   return TIMER_STATUS_INVALID;
 }
 
+int
+GetTimerClockSource(TimerInstance* instance)
+{
+  return instance->clockSource;
+}
+
+uint8_t
+GetTimerCompareMatch(TimerInstance* instance)
+{
+  return instance->compareMatch;
+}
+
 void
 StartTimer(TimerInstance* instance)
 {
   instance->status = TIMER_STATUS_RUNNING;
-  System_TimerSelectClock(TIMER_CLOCK_SELECT_ON);
+  System_TimerSetClockSource(SYSTEM_TIMER_CLKSOURCE_INT);
 }
 
 void
 StopTimer(TimerInstance* instance)
 {
   instance->status = TIMER_STATUS_STOPPED;
-  System_TimerSelectClock(TIMER_CLOCK_SELECT_OFF);
+  System_TimerSetClockSource(SYSTEM_TIMER_CLKSOURCE_OFF);
 }
 
 int
@@ -158,23 +177,30 @@ SetTimerCycleTimeMilliSec(
     return FALSE;
   }
 
-  unsigned int numClockCyclesPerMilliSec = (unsigned int)(0.001 * SYSTEM_IO_CLOCK_FREQ);
-  unsigned int idealPrescaleFactor = (unsigned int)((numMilliSec * numClockCyclesPerMilliSec) / 256);
-  unsigned int compareValue = 0;
+  unsigned int idealFrequency = (unsigned int)(MAX_IDEAL_FREQ_MS_COUNTER / numMilliSec);
+  unsigned int clockSourceFrequency = 0;
 
-  int prescalerIdx;
+  int clockSourceIter;
   for(
-      prescalerIdx = 0;
-      prescalerIdx < SYSTEM_NUM_TIMER_PRESCALERS;
-      prescalerIdx++
+      clockSourceIter = 0;
+      clockSourceIter < NUM_TIMER_CLKSOURCES;
+      clockSourceIter++
      )
   {
-    if (idealPrescaleFactor <= System_TimerHWPrescalers[prescalerIdx])
+    clockSourceFrequency = System_TimerGetSourceFrequency(clockSourceIter);
+    if (clockSourceFrequency == 0)
     {
-      System_TimerSelectClock(TIMER_CLOCK_SELECT_ON + prescalerIdx);
+      continue;
+    }
+    
+    if (idealFrequency >= clockSourceFrequency)
+    {
+      instance->clockSource = clockSourceIter;
+      instance->compareMatch = (uint8_t)((numMilliSec * clockSourceFrequency) / 1000);
 
-      compareValue = (unsigned int)((numMilliSec * numClockCyclesPerMilliSec) / System_TimerHWPrescalers[prescalerIdx]); 
-      System_TimerSetOutputCompare(compareValue);
+      System_TimerSetClockSource(instance->clockSource);
+      System_TimerSetCompareMatch(instance->compareMatch);
+
       return TRUE;
     }
   }
