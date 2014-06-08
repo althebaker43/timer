@@ -146,3 +146,38 @@ StopTimer(TimerInstance* instance)
   instance->status = TIMER_STATUS_STOPPED;
   System_TimerSelectClock(TIMER_CLOCK_SELECT_OFF);
 }
+
+int
+SetTimerCycleTimeMilliSec(
+    TimerInstance*  instance,
+    unsigned int    numMilliSec
+    )
+{
+  if (numMilliSec == 0)
+  {
+    return FALSE;
+  }
+
+  unsigned int numClockCyclesPerMilliSec = (unsigned int)(0.001 * SYSTEM_IO_CLOCK_FREQ);
+  unsigned int idealPrescaleFactor = (unsigned int)((numMilliSec * numClockCyclesPerMilliSec) / 256);
+  unsigned int compareValue = 0;
+
+  int prescalerIdx;
+  for(
+      prescalerIdx = 0;
+      prescalerIdx < SYSTEM_NUM_TIMER_PRESCALERS;
+      prescalerIdx++
+     )
+  {
+    if (idealPrescaleFactor <= System_TimerHWPrescalers[prescalerIdx])
+    {
+      System_TimerSelectClock(TIMER_CLOCK_SELECT_ON + prescalerIdx);
+
+      compareValue = (unsigned int)((numMilliSec * numClockCyclesPerMilliSec) / System_TimerHWPrescalers[prescalerIdx]); 
+      System_TimerSetOutputCompare(compareValue);
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}

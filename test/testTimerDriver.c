@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include "unity_fixture.h"
 #include "TimerDriver.h"
 #include "TargetSystem.h"
@@ -7,103 +8,134 @@ TEST_GROUP(TimerDriver);
 
 static TimerInstance** timers = NULL;
 
-///**
-// * General timer/counter control register
-// */
-//static char GTCCR;
-//enum GTCCR_Bits
-//{
-//  PSR0 = 0, /**< Prescaler reset timer/counter 0 */
-//  PSR1,
-//  FOC1A,
-//  FOC1B,
-//  COM1B0,
-//  COM1B1,
-//  PWM1B,
-//  TSM       /**< Timer/counter synchronization mode */
-//};
-//
-///**
-// * Timer 0 control register A
-// */
-//static char TCCR0A;
-//enum TCCR0A_Bits
-//{
-//  WGM00 = 0,
-//  WGM01,
-//  COM0B0 = 4,
-//  COM0B1,
-//  COM0A0,
-//  COM0A1
-//};
+/**
+ * General timer/counter control register
+ */
+static uint8_t GTCCR;
+enum GTCCR_Bits
+{
+  PSR0 = 0, /**< Prescaler reset timer/counter 0 */
+  PSR1,
+  FOC1A,
+  FOC1B,
+  COM1B0,
+  COM1B1,
+  PWM1B,
+  TSM       /**< Timer/counter synchronization mode */
+};
+
+/**
+ * Timer 0 control register A
+ */
+static uint8_t TCCR0A;
+enum TCCR0A_Bits
+{
+  WGM00 = 0,
+  WGM01,
+  COM0B0 = 4,
+  COM0B1,
+  COM0A0,
+  COM0A1
+};
 
 /**
  * Timer 0 control register B
  */
-static char TCCR0B;
+static uint8_t TCCR0B;
 enum TCCR0B_Bits
 {
   CS00 = 0,
   CS01,
   CS02,
-//  WGM02,
-//  FOC0B = 6,
-//  FOC0A
+  WGM02,
+  FOC0B = 6,
+  FOC0A
 };
 
-///**
-// * Timer 0 register
-// */
-//static char TCNT0;
-//
-///**
-// * Output compare register A
-// */
-//static char OCR0A;
-//
-///**
-// * Output compare register B
-// */
-//static char OCR0B;
-//
-///**
-// * Timer 0 interrupt mask register
-// */
-//static char TIMSK;
-//enum TIMSK_Bits
-//{
-//  TOIE0 = 1,
-//  TOIE1,
-//  OCIE0B,
-//  OCIE0A,
-//  OCIE1B,
-//  OCIE1A
-//};
-//
-///**
-// * Timer 0 interrupt flag register
-// */
-//static char TIFR;
-//enum TIFR_Bits
-//{
-//  TOV0 = 1,
-//  TOV1,
-//  OCF0B,
-//  OCF0A,
-//  OCF1B,
-//  OCF1A
-//};
+/**
+ * Timer 0 register
+ */
+static uint8_t TCNT0;
+
+/**
+ * Output compare register A
+ */
+static uint8_t OCR0A;
+
+/**
+ * Output compare register B
+ */
+static uint8_t OCR0B;
+
+/**
+ * Timer 0 interrupt mask register
+ */
+static uint8_t TIMSK;
+enum TIMSK_Bits
+{
+  TOIE0 = 1,
+  TOIE1,
+  OCIE0B,
+  OCIE0A,
+  OCIE1B,
+  OCIE1A
+};
+
+/**
+ * Timer 0 interrupt flag register
+ */
+static uint8_t TIFR;
+enum TIFR_Bits
+{
+  TOV0 = 1,
+  TOV1,
+  OCF0B,
+  OCF0A,
+  OCF1B,
+  OCF1A
+};
+
+/**
+ * Power reduction register
+ */
+static uint8_t PRR;
+enum PRR_Bits
+{
+  PRADC = 0,
+  PRUSI,
+  PRTIM0,
+  PRTIM1
+};
+
+unsigned int System_TimerHWPrescalers [SYSTEM_NUM_TIMER_PRESCALERS] = {
+  0,
+  8,
+  64,
+  256,
+  1024
+};
 
 inline void System_TimerSelectClock(
-    int clock_source
+    int clockSource
     )
 {
-  switch (clock_source)
+  switch (clockSource)
   {
-    case TIMER_CLOCK_SELECT_OFF:  TCCR0B = 0x00; break;
-    case TIMER_CLOCK_SELECT_ON:   TCCR0B = 0xFF; break;
+    case TIMER_CLOCK_SELECT_OFF:        TCCR0B = 0; break;
+    case TIMER_CLOCK_SELECT_ON:         TCCR0B = (1<<CS00); break;
+    case TIMER_CLOCK_SELECT_ON_PRE8:    TCCR0B = (1<<CS01); break;
+    case TIMER_CLOCK_SELECT_ON_PRE64:   TCCR0B = (1<<CS01) | (1<<CS00); break;
+    case TIMER_CLOCK_SELECT_ON_PRE256:  TCCR0B = (1<<CS02); break;
+    case TIMER_CLOCK_SELECT_ON_PRE1024: TCCR0B = (1<<CS02) | (1<<CS00); break;
     default: break;
   };
+}
+
+inline void System_TimerSetOutputCompare(
+    char compareValue
+    )
+{
+  OCR0A = compareValue;
 }
 
 static void testCreateAllTimers()
@@ -145,6 +177,15 @@ static void testDestroyAllTimers()
 
 TEST_SETUP(TimerDriver)
 {
+  GTCCR = 0;
+  TCCR0A = 0;
+  TCCR0B = 0;
+  TCNT0 = 0;
+  OCR0A = 0;
+  OCR0B = 0;
+  TIMSK = 0;
+  TIFR = 0;
+  PRR = 0;
 }
 
 TEST_TEAR_DOWN(TimerDriver)
@@ -227,7 +268,7 @@ TEST(TimerDriver, TrackNumOfTimers)
 
 TEST(TimerDriver, NullTimerStatus)
 {
-  TEST_ASSERT_EQUAL(GetTimerStatus(NULL), TIMER_STATUS_INVALID);
+  TEST_ASSERT_EQUAL(TIMER_STATUS_INVALID, GetTimerStatus(NULL));
 }
 
 TEST(TimerDriver, InvalidTimerStatus)
@@ -236,21 +277,21 @@ TEST(TimerDriver, InvalidTimerStatus)
   TimerInstance* invalidTimer = timers[0];
   DestroyTimer(&timers[0]);
 
-  TEST_ASSERT_EQUAL(GetTimerStatus(invalidTimer), TIMER_STATUS_INVALID);
+  TEST_ASSERT_EQUAL(TIMER_STATUS_INVALID, GetTimerStatus(invalidTimer));
 }
 
 TEST(TimerDriver, StoppedOnInit)
 {
   testCreateAllTimers();
 
-  TEST_ASSERT_EQUAL(GetTimerStatus(timers[0]), TIMER_STATUS_STOPPED);
+  TEST_ASSERT_EQUAL(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
   TEST_ASSERT_BITS_LOW(((1<<CS02) | (1<<CS01) | (1<<CS00)), TCCR0B);
 
   StartTimer(timers[0]);
   DestroyTimer(&timers[0]);
 
   timers[0] = CreateTimer();
-  TEST_ASSERT_EQUAL(GetTimerStatus(timers[0]), TIMER_STATUS_STOPPED);
+  TEST_ASSERT_EQUAL(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
   TEST_ASSERT_BITS_LOW(((1<<CS02) | (1<<CS01) | (1<<CS00)), TCCR0B);
 }
 
@@ -268,8 +309,16 @@ TEST(TimerDriver, RunningAfterStart)
   testCreateAllTimers();
   StartTimer(timers[0]);
 
-  TEST_ASSERT_EQUAL(GetTimerStatus(timers[0]), TIMER_STATUS_RUNNING);
+  TEST_ASSERT_EQUAL(TIMER_STATUS_RUNNING, GetTimerStatus(timers[0]));
   TEST_ASSERT((TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))) != 0);
+}
+
+TEST(TimerDriver, NoPowerReductionAfterStart)
+{
+  testCreateAllTimers();
+  StartTimer(timers[0]);
+
+  TEST_ASSERT_BITS_LOW(((1<<PRTIM1) | (1<<PRTIM0)), PRR);
 }
 
 TEST(TimerDriver, StoppedAfterStop)
@@ -278,11 +327,28 @@ TEST(TimerDriver, StoppedAfterStop)
   StartTimer(timers[0]);
   StopTimer(timers[0]);
 
-  TEST_ASSERT_EQUAL(GetTimerStatus(timers[0]), TIMER_STATUS_STOPPED);
+  TEST_ASSERT_EQUAL(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
   TEST_ASSERT_BITS_LOW(((1<<CS02) | (1<<CS01) | (1<<CS00)), TCCR0B);
 }
 
-TEST(TimerDriver, SetCycleTime)
+TEST(TimerDriver, SetCycleTimeMilliSec)
 {
-  TEST_IGNORE();
+  testCreateAllTimers();
+  
+  TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 100));
+  TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
+  TEST_ASSERT_EQUAL_UINT8(97, OCR0A);
+
+  TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 1));
+  TEST_ASSERT_EQUAL_UINT8(0x02, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
+  TEST_ASSERT_EQUAL_UINT8(125, OCR0A);
+
+  // Maximum number of milliseconds
+  TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 262));
+  TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
+  TEST_ASSERT_EQUAL_UINT8(255, OCR0A);
+
+  TEST_ASSERT_FALSE(SetTimerCycleTimeMilliSec(timers[0], 263));
+
+  TEST_ASSERT_FALSE(SetTimerCycleTimeMilliSec(timers[0], 0));
 }

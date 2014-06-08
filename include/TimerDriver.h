@@ -1,3 +1,6 @@
+#ifndef TIMER_DRIVER
+#define TIMER_DRIVER
+
 /**
  * Timer context structure typedef
  */
@@ -55,3 +58,12 @@ void StartTimer(TimerInstance*);
  * Stops the given timer, if not already stopped
  */
 void StopTimer(TimerInstance*);
+
+/**
+ * Sets the timer cycle time in milliseconds
+ *
+ * \return Nonzero if the timer cycle time was set, zero otherwise
+ */
+int SetTimerCycleTimeMilliSec(TimerInstance*, unsigned int);
+
+#endif /* TIMER_DRIVER */
