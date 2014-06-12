@@ -393,5 +393,19 @@ TEST(TimerDriver, SetCycleTimeMilliSec)
 
 TEST(TimerDriver, SetCycleTimeSec)
 {
-  TEST_IGNORE();
+  testCreateAllTimers();
+
+  TEST_ASSERT(SetTimerCycleTimeSec(timers[0], 1));
+  TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
+  TEST_ASSERT_EQUAL_UINT8(244, OCR0A);
+  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(244, GetTimerCompareMatch(timers[0]));
+  TEST_ASSERT_EQUAL(4, GetTimerCompareMatchesPerCycle(timers[0]));
+
+  TEST_ASSERT(SetTimerCycleTimeSec(timers[0], 2));
+  TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
+  TEST_ASSERT_EQUAL_UINT8(244, OCR0A);
+  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(244, GetTimerCompareMatch(timers[0]));
+  TEST_ASSERT_EQUAL(8, GetTimerCompareMatchesPerCycle(timers[0]));
 }
