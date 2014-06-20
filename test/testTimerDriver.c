@@ -107,17 +107,24 @@ enum PRR_Bits
   PRTIM1
 };
 
+/**
+ * Core clock frequency
+ *
+ * \note The default is 1MHz
+ */
+static unsigned long int coreClockFrequency = 1000000;
+
 inline unsigned int System_TimerGetSourceFrequency(
     System_TimerClockSource clockSource
     )
 {
   switch (clockSource)
   {
-    case SYSTEM_TIMER_CLKSOURCE_INT:          return 1000000; break;
-    case SYSTEM_TIMER_CLKSOURCE_INT_PRE8:     return 125000; break;
-    case SYSTEM_TIMER_CLKSOURCE_INT_PRE64:    return 15625; break;
-    case SYSTEM_TIMER_CLKSOURCE_INT_PRE256:   return 3906; break; // rounded from 3906.25
-    case SYSTEM_TIMER_CLKSOURCE_INT_PRE1024:  return 977; break;  // rounded from 976.5625
+    case SYSTEM_TIMER_CLKSOURCE_INT:          return coreClockFrequency; break;
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE8:     return (coreClockFrequency / 8); break;
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE64:    return (coreClockFrequency / 64); break;
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE256:   return (coreClockFrequency / 256); break;
+    case SYSTEM_TIMER_CLKSOURCE_INT_PRE1024:  return (coreClockFrequency / 1024); break;
     default:
       return 0;
       break;
@@ -218,6 +225,7 @@ TEST_SETUP(TimerDriver)
   TIMSK = 0;
   TIFR = 0;
   PRR = 0;
+  coreClockFrequency = 1000000; // Default core frequency to 1MHz
 }
 
 TEST_TEAR_DOWN(TimerDriver)
@@ -379,7 +387,7 @@ TEST(TimerDriver, SetCycleTimeMilliSec)
   TEST_ASSERT_EQUAL_UINT8(125, GetTimerCompareMatch(timers[0]));
   TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE8, GetTimerClockSource(timers[0]));
 
-  // Maximum number of milliseconds
+  // Maximum number of milliseconds for 1MHz core clock
   TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 262));
   TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(255, OCR0A);
@@ -389,6 +397,14 @@ TEST(TimerDriver, SetCycleTimeMilliSec)
   TEST_ASSERT_FALSE(SetTimerCycleTimeMilliSec(timers[0], 263));
 
   TEST_ASSERT_FALSE(SetTimerCycleTimeMilliSec(timers[0], 0));
+
+  // Change clock to 8MHz
+  coreClockFrequency = 8000000;
+
+  TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 1));
+  TEST_ASSERT_EQUAL_UINT8(0x03, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
+  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE64, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(125, GetTimerCompareMatch(timers[0]));
 }
 
 TEST(TimerDriver, SetCycleTimeSec)

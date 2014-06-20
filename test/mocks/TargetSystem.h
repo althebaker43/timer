@@ -12,16 +12,6 @@
 #define SYSTEM_NUM_TIMERS 3
 
 /**
- * Frequency of main core clock
- */
-#define SYSTEM_CORE_CLOCK_FREQ 1000000
-
-/**
- * Frequency of I/O clock
- */
-#define SYSTEM_IO_CLOCK_FREQ 1000000
-
-/**
  * Number of prescaler options for timers
  */
 #define SYSTEM_NUM_TIMER_PRESCALERS 5
