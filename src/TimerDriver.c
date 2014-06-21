@@ -184,31 +184,40 @@ SetTimerCycleTimeMilliSec(
     return FALSE;
   }
 
-  unsigned int idealFrequency = (unsigned int)(MAX_IDEAL_FREQ_MS_COUNTER / numMilliSec);
+  unsigned int idealFrequency = 0;
+  unsigned int numMilliSecPerSubCycle = 0;
   unsigned int clockSourceFrequency = 0;
+  instance->compareMatchesPerCycle = 0;
 
-  int clockSourceIter;
-  for(
-      clockSourceIter = 0;
-      clockSourceIter < NUM_TIMER_CLKSOURCES;
-      clockSourceIter++
-     )
+  for (;;)
   {
-    clockSourceFrequency = System_TimerGetSourceFrequency(clockSourceIter);
-    if (clockSourceFrequency == 0)
-    {
-      continue;
-    }
-    
-    if (idealFrequency >= clockSourceFrequency)
-    {
-      instance->clockSource = clockSourceIter;
-      instance->compareMatch = (uint8_t)((numMilliSec * clockSourceFrequency) / 1000);
+    instance->compareMatchesPerCycle++;
+    numMilliSecPerSubCycle = numMilliSec / instance->compareMatchesPerCycle;
+    idealFrequency = (unsigned int)(MAX_IDEAL_FREQ_MS_COUNTER / numMilliSecPerSubCycle);
 
-      System_TimerSetClockSource(instance->clockSource);
-      System_TimerSetCompareMatch(instance->compareMatch);
+    int clockSourceIter;
+    for(
+        clockSourceIter = 0;
+        clockSourceIter < NUM_TIMER_CLKSOURCES;
+        clockSourceIter++
+       )
+    {
+      clockSourceFrequency = System_TimerGetSourceFrequency(clockSourceIter);
+      if (clockSourceFrequency == 0)
+      {
+        continue;
+      }
+      
+      if (idealFrequency >= clockSourceFrequency)
+      {
+        instance->clockSource = clockSourceIter;
+        instance->compareMatch = (uint8_t)((numMilliSecPerSubCycle * clockSourceFrequency) / 1000);
 
-      return TRUE;
+        System_TimerSetClockSource(instance->clockSource);
+        System_TimerSetCompareMatch(instance->compareMatch);
+
+        return TRUE;
+      }
     }
   }
 
@@ -221,11 +230,8 @@ SetTimerCycleTimeSec(
     unsigned int    numSec
     )
 {
-  instance->clockSource = SYSTEM_TIMER_CLKSOURCE_INT_PRE1024;
-  instance->compareMatch = 244;
-  instance->compareMatchesPerCycle = numSec * 4;
-  
-  System_TimerSetClockSource(instance->clockSource);
-  System_TimerSetCompareMatch(instance->compareMatch);
-  return TRUE;
+  return SetTimerCycleTimeMilliSec(
+      instance,
+      (numSec * 1000)
+      );
 }
