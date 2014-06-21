@@ -114,7 +114,7 @@ enum PRR_Bits
  */
 static uint32_t coreClockFrequency = 1000000;
 
-inline uint32_t System_TimerGetSourceFrequency(
+uint32_t System_TimerGetSourceFrequency(
     System_TimerClockSource clockSource
     )
 {
@@ -131,7 +131,7 @@ inline uint32_t System_TimerGetSourceFrequency(
   };
 }
 
-inline uint8_t System_TimerSetClockSource(
+uint8_t System_TimerSetClockSource(
     System_TimerClockSource clockSource
     )
 {
@@ -169,11 +169,41 @@ inline uint8_t System_TimerSetClockSource(
   return TRUE;
 }
 
-inline uint8_t System_TimerSetCompareMatch(
+uint8_t System_TimerSetCompareMatch(
     uint8_t compareValue
     )
 {
   OCR0A = compareValue;
+  return TRUE;
+}
+
+uint8_t System_TimerSetCompareOutputMode(
+    System_TimerCompareOutputMode outputMode
+    )
+{
+  switch (outputMode)
+  {
+    case SYSTEM_TIMER_OUTPUT_MODE_NONE:
+      TCCR0A = 0;
+      break;
+
+    case SYSTEM_TIMER_OUTPUT_MODE_SET:
+      TCCR0A = (1<<COM0A1) | (1<<COM0A0);
+      break;
+
+    case SYSTEM_TIMER_OUTPUT_MODE_CLEAR:
+      TCCR0A = (1<<COM0A1);
+      break;
+
+    case SYSTEM_TIMER_OUTPUT_MODE_TOGGLE:
+      TCCR0A = (1<<COM0A0);
+      break;
+
+    default:
+      return FALSE;
+      break;
+  };
+
   return TRUE;
 }
 
@@ -344,6 +374,11 @@ TEST(TimerDriver, StoppedOnDestroy)
   TEST_ASSERT_BITS_LOW(((1<<CS02) | (1<<CS01) | (1<<CS00)), TCCR0B);
 }
 
+TEST(TimerDriver, NoRunningWithoutTime)
+{
+  TEST_IGNORE();
+}
+
 TEST(TimerDriver, RunningAfterStart)
 {
   testCreateAllTimers();
@@ -464,4 +499,24 @@ TEST(TimerDriver, HiFreqAccuracy)
   TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(252, GetTimerCompareMatch(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(31, GetTimerCompareMatchesPerCycle(timers[0]));
+}
+
+TEST(TimerDriver, CompareOutputMode)
+{
+  testCreateAllTimers();
+
+  uint8_t timerIdx;
+  for(
+      timerIdx = 0;
+      timerIdx < SYSTEM_NUM_TIMERS;
+      timerIdx++
+     )
+  {
+    TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_OUTPUT_MODE_NONE, GetTimerCompareOutputMode(timers[timerIdx], SYSTEM_TIMER_OUTPUT_A));
+  }
+  TEST_ASSERT_EQUAL_UINT8(0x00, (TCCR0A & ((1<<COM0A1) | (1<<COM0A0) | (1<<COM0B1) | (1<<COM0B0))));
+
+  TEST_ASSERT(SetTimerCompareOutputMode(timers[0], SYSTEM_TIMER_OUTPUT_A, SYSTEM_TIMER_OUTPUT_MODE_SET));
+  TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_OUTPUT_MODE_SET, GetTimerCompareOutputMode(timers[0], SYSTEM_TIMER_OUTPUT_A));
+  TEST_ASSERT_EQUAL_UINT8(0xC0, (TCCR0A & ((1<<COM0A1) | (1<<COM0A0) | (1<<COM0B1) | (1<<COM0B0))));
 }

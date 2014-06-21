@@ -96,4 +96,16 @@ uint8_t SetTimerCycleTimeMilliSec(TimerInstance*, uint16_t);
  */
 uint8_t SetTimerCycleTimeSec(TimerInstance*, uint8_t);
 
+/**
+ * Provides the compare output mode for a given timer
+ */
+uint8_t GetTimerCompareOutputMode(TimerInstance*, uint8_t);
+
+/**
+ * Sets the compare output mode of a timer
+ *
+ * \return Nonzero if the timer output mode was set, zero otherwise
+ */
+uint8_t SetTimerCompareOutputMode(TimerInstance*, uint8_t, uint8_t);
+
 #endif /* TIMER_DRIVER */

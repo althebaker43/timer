@@ -34,6 +34,25 @@ typedef enum System_TimerClockSource_enum
 } System_TimerClockSource;
 
 /**
+ * Enumeration of timer compare output pins
+ */
+typedef enum System_TimerCompareOutput_enum
+{
+  SYSTEM_TIMER_OUTPUT_A
+} System_TimerCompareOutput;
+
+/**
+ * Enumeration of timer compare output modes
+ */
+typedef enum System_TimerCompareOutputMode_enum
+{
+  SYSTEM_TIMER_OUTPUT_MODE_NONE,   /**< Outputs disconnected */
+  SYSTEM_TIMER_OUTPUT_MODE_SET,
+  SYSTEM_TIMER_OUTPUT_MODE_CLEAR,
+  SYSTEM_TIMER_OUTPUT_MODE_TOGGLE
+} System_TimerCompareOutputMode;
+
+/**
  * Provides the frequency in Hz for a given clock source
  *
  * \return Frequency of given clock source, or zero if invalid
@@ -58,6 +77,15 @@ uint8_t System_TimerSetClockSource(
  */
 uint8_t System_TimerSetCompareMatch(
     uint8_t
+    );
+
+/**
+ * Sets the timer compare output mode
+ *
+ * \return Nonzero if the configuration was successful, zero otherwise
+ */
+uint8_t System_TimerSetCompareOutputMode(
+    System_TimerCompareOutputMode
     );
 
 #endif /* TARGET_SYSTEM */

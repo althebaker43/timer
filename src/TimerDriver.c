@@ -9,10 +9,11 @@
 
 struct TimerInstance_struct
 {
-  TimerStatus             status;                 /**< Current status of the timer */
-  System_TimerClockSource clockSource;            /**< Clock source currently used for this timer */
-  uint8_t                 compareMatch;           /**< Value to trigger a compare match on */
-  uint8_t                 compareMatchesPerCycle; /**< Number of compare matches per timer cycle */
+  TimerStatus                   status;                 /**< Current status of the timer */
+  System_TimerClockSource       clockSource;            /**< Clock source currently used for this timer */
+  uint8_t                       compareMatch;           /**< Value to trigger a compare match on */
+  uint8_t                       compareMatchesPerCycle; /**< Number of compare matches per timer cycle */
+  System_TimerCompareOutputMode compareOutputMode;      /**< Compare output mode */
 };
 
 static uint8_t timersInitialized = FALSE;
@@ -234,4 +235,31 @@ SetTimerCycleTimeSec(
       instance,
       (numSec * 1000)
       );
+}
+
+uint8_t
+GetTimerCompareOutputMode(
+    TimerInstance*  instance,
+    uint8_t         output
+    )
+{
+  return instance->compareOutputMode;
+}
+
+uint8_t
+SetTimerCompareOutputMode(
+    TimerInstance* instance,
+    uint8_t        output,
+    uint8_t        mode
+    )
+{
+  if (System_TimerSetCompareOutputMode(mode) == TRUE)
+  {
+    instance->compareOutputMode = mode;
+    return TRUE;
+  }
+  else
+  {
+    return FALSE;
+  }
 }

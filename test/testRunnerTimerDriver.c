@@ -13,12 +13,14 @@ TEST_GROUP_RUNNER(TimerDriver)
   RUN_TEST_CASE(TimerDriver, InvalidTimerStatus);
   RUN_TEST_CASE(TimerDriver, StoppedOnInit);
   RUN_TEST_CASE(TimerDriver, StoppedOnDestroy);
+  RUN_TEST_CASE(TimerDriver, NoRunningWithoutTime);
   RUN_TEST_CASE(TimerDriver, RunningAfterStart);
   RUN_TEST_CASE(TimerDriver, NoPowerReductionAfterStart);
   RUN_TEST_CASE(TimerDriver, StoppedAfterStop);
   RUN_TEST_CASE(TimerDriver, SetCycleTimeMilliSec);
   RUN_TEST_CASE(TimerDriver, SetCycleTimeSec);
   RUN_TEST_CASE(TimerDriver, HiFreqAccuracy);
+  RUN_TEST_CASE(TimerDriver, CompareOutputMode);
 }
 
 static void RunAllTests()
