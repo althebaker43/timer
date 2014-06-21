@@ -54,7 +54,7 @@ TimerStatus GetTimerStatus(TimerInstance*);
 /**
  * Provides the given timer's system clock source enumerator
  */
-int GetTimerClockSource(TimerInstance*);
+uint8_t GetTimerClockSource(TimerInstance*);
 
 /**
  * Provides the given timer's compare match value
@@ -70,7 +70,7 @@ uint8_t GetTimerCompareMatch(TimerInstance*);
  *
  * \return Number of compare matches per cycle, or -1 if invalid instance is given
  */
-int GetTimerCompareMatchesPerCycle(TimerInstance*);
+uint8_t GetTimerCompareMatchesPerCycle(TimerInstance*);
 
 /**
  * Starts the given timer, if not already running
@@ -87,13 +87,13 @@ void StopTimer(TimerInstance*);
  *
  * \return Nonzero if the timer cycle time was set, zero otherwise
  */
-int SetTimerCycleTimeMilliSec(TimerInstance*, unsigned int);
+uint8_t SetTimerCycleTimeMilliSec(TimerInstance*, uint16_t);
 
 /**
  * Sets the timer cycle time in seconds
  *
  * \return Nonzero if the timer cycle time was set, zero otherwise
  */
-int SetTimerCycleTimeSec(TimerInstance*, unsigned int);
+uint8_t SetTimerCycleTimeSec(TimerInstance*, uint8_t);
 
 #endif /* TIMER_DRIVER */

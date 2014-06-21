@@ -47,7 +47,7 @@ unsigned int System_TimerGetSourceFrequency(
  *
  * \return Nonzero if configuration was successful, zero otherwise
  */
-int System_TimerSetClockSource(
+uint8_t System_TimerSetClockSource(
     System_TimerClockSource
     );
 
@@ -56,7 +56,7 @@ int System_TimerSetClockSource(
  *
  * \return Nonzero if configuration was successful, zero otherwise
  */
-int System_TimerSetCompareMatch(
+uint8_t System_TimerSetCompareMatch(
     uint8_t
     );
 

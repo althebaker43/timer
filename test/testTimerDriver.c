@@ -112,9 +112,9 @@ enum PRR_Bits
  *
  * \note The default is 1MHz
  */
-static unsigned long int coreClockFrequency = 1000000;
+static uint32_t coreClockFrequency = 1000000;
 
-inline unsigned int System_TimerGetSourceFrequency(
+inline uint32_t System_TimerGetSourceFrequency(
     System_TimerClockSource clockSource
     )
 {
@@ -131,7 +131,7 @@ inline unsigned int System_TimerGetSourceFrequency(
   };
 }
 
-inline int System_TimerSetClockSource(
+inline uint8_t System_TimerSetClockSource(
     System_TimerClockSource clockSource
     )
 {
@@ -169,7 +169,7 @@ inline int System_TimerSetClockSource(
   return TRUE;
 }
 
-inline int System_TimerSetCompareMatch(
+inline uint8_t System_TimerSetCompareMatch(
     uint8_t compareValue
     )
 {
@@ -182,7 +182,7 @@ static void testCreateAllTimers()
   InitTimers();
   timers = (TimerInstance**)malloc((sizeof(TimerInstance*)) * SYSTEM_NUM_TIMERS);
 
-  int timerIdx;
+  uint8_t timerIdx;
   for(
       timerIdx = 0;
       timerIdx < SYSTEM_NUM_TIMERS;
@@ -200,7 +200,7 @@ static void testDestroyAllTimers()
     return;
   }
 
-  int timerIdx;
+  uint8_t timerIdx;
   for(
       timerIdx = 0;
       timerIdx < SYSTEM_NUM_TIMERS;
@@ -230,8 +230,8 @@ TEST_SETUP(TimerDriver)
 
 TEST_TEAR_DOWN(TimerDriver)
 {
-  testDestroyAllTimers();
-  DestroyAllTimers();
+  testDestroyAllTimers(); // Clears this framework's timers
+  DestroyAllTimers();     // Resets the timer driver
 }
 
 TEST(TimerDriver, NoTimersBeforeInit)
@@ -255,7 +255,7 @@ TEST(TimerDriver, CreateTimer)
 {
   testCreateAllTimers();
 
-  int timerIdx;
+  uint8_t timerIdx;
   for(
       timerIdx = 0;
       timerIdx < SYSTEM_NUM_TIMERS;
@@ -279,7 +279,7 @@ TEST(TimerDriver, DestroyAllTimers)
   testCreateAllTimers();
   DestroyAllTimers();
 
-  int timerIdx;
+  uint8_t timerIdx;
   for(
       timerIdx = 0;
       timerIdx < SYSTEM_NUM_TIMERS;
@@ -308,7 +308,7 @@ TEST(TimerDriver, TrackNumOfTimers)
 
 TEST(TimerDriver, NullTimerStatus)
 {
-  TEST_ASSERT_EQUAL(TIMER_STATUS_INVALID, GetTimerStatus(NULL));
+  TEST_ASSERT_EQUAL_UINT8(TIMER_STATUS_INVALID, GetTimerStatus(NULL));
 }
 
 TEST(TimerDriver, InvalidTimerStatus)
@@ -317,21 +317,21 @@ TEST(TimerDriver, InvalidTimerStatus)
   TimerInstance* invalidTimer = timers[0];
   DestroyTimer(&timers[0]);
 
-  TEST_ASSERT_EQUAL(TIMER_STATUS_INVALID, GetTimerStatus(invalidTimer));
+  TEST_ASSERT_EQUAL_UINT8(TIMER_STATUS_INVALID, GetTimerStatus(invalidTimer));
 }
 
 TEST(TimerDriver, StoppedOnInit)
 {
   testCreateAllTimers();
 
-  TEST_ASSERT_EQUAL(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
   TEST_ASSERT_BITS_LOW(((1<<CS02) | (1<<CS01) | (1<<CS00)), TCCR0B);
 
   StartTimer(timers[0]);
   DestroyTimer(&timers[0]);
 
   timers[0] = CreateTimer();
-  TEST_ASSERT_EQUAL(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
   TEST_ASSERT_BITS_LOW(((1<<CS02) | (1<<CS01) | (1<<CS00)), TCCR0B);
 }
 
@@ -349,7 +349,7 @@ TEST(TimerDriver, RunningAfterStart)
   testCreateAllTimers();
   StartTimer(timers[0]);
 
-  TEST_ASSERT_EQUAL(TIMER_STATUS_RUNNING, GetTimerStatus(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(TIMER_STATUS_RUNNING, GetTimerStatus(timers[0]));
   TEST_ASSERT((TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))) != 0);
 }
 
@@ -367,7 +367,7 @@ TEST(TimerDriver, StoppedAfterStop)
   StartTimer(timers[0]);
   StopTimer(timers[0]);
 
-  TEST_ASSERT_EQUAL(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
   TEST_ASSERT_BITS_LOW(((1<<CS02) | (1<<CS01) | (1<<CS00)), TCCR0B);
 }
 
@@ -378,38 +378,38 @@ TEST(TimerDriver, SetCycleTimeMilliSec)
   TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 100));
   TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(97, OCR0A);
-  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(97, GetTimerCompareMatch(timers[0]));
-  TEST_ASSERT_EQUAL(1, GetTimerCompareMatchesPerCycle(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(1, GetTimerCompareMatchesPerCycle(timers[0]));
 
   TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 1));
   TEST_ASSERT_EQUAL_UINT8(0x02, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(125, OCR0A);
   TEST_ASSERT_EQUAL_UINT8(125, GetTimerCompareMatch(timers[0]));
-  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE8, GetTimerClockSource(timers[0]));
-  TEST_ASSERT_EQUAL(1, GetTimerCompareMatchesPerCycle(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE8, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(1, GetTimerCompareMatchesPerCycle(timers[0]));
 
   // Maximum number of milliseconds for 1MHz core clock without software divider
   TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 262));
   TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(255, OCR0A);
-  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(255, GetTimerCompareMatch(timers[0]));
-  TEST_ASSERT_EQUAL(1, GetTimerCompareMatchesPerCycle(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(1, GetTimerCompareMatchesPerCycle(timers[0]));
 
   TEST_ASSERT_TRUE(SetTimerCycleTimeMilliSec(timers[0], 263));
   TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(127, OCR0A);
-  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(127, GetTimerCompareMatch(timers[0]));
-  TEST_ASSERT_EQUAL(2, GetTimerCompareMatchesPerCycle(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(2, GetTimerCompareMatchesPerCycle(timers[0]));
 
   TEST_ASSERT_TRUE(SetTimerCycleTimeMilliSec(timers[0], 500));
   TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(244, OCR0A);
-  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(244, GetTimerCompareMatch(timers[0]));
-  TEST_ASSERT_EQUAL(2, GetTimerCompareMatchesPerCycle(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(2, GetTimerCompareMatchesPerCycle(timers[0]));
 
   TEST_ASSERT_FALSE(SetTimerCycleTimeMilliSec(timers[0], 0));
 
@@ -419,15 +419,15 @@ TEST(TimerDriver, SetCycleTimeMilliSec)
   TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 100));
   TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(195, OCR0A);
-  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(195, GetTimerCompareMatch(timers[0]));
-  TEST_ASSERT_EQUAL(4, GetTimerCompareMatchesPerCycle(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(4, GetTimerCompareMatchesPerCycle(timers[0]));
 
   TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 1));
   TEST_ASSERT_EQUAL_UINT8(0x03, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
-  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE64, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE64, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(125, GetTimerCompareMatch(timers[0]));
-  TEST_ASSERT_EQUAL(1, GetTimerCompareMatchesPerCycle(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(1, GetTimerCompareMatchesPerCycle(timers[0]));
 }
 
 TEST(TimerDriver, SetCycleTimeSec)
@@ -437,16 +437,16 @@ TEST(TimerDriver, SetCycleTimeSec)
   TEST_ASSERT(SetTimerCycleTimeSec(timers[0], 1));
   TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(244, OCR0A);
-  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(244, GetTimerCompareMatch(timers[0]));
-  TEST_ASSERT_EQUAL(4, GetTimerCompareMatchesPerCycle(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(4, GetTimerCompareMatchesPerCycle(timers[0]));
 
   TEST_ASSERT(SetTimerCycleTimeSec(timers[0], 2));
   TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(244, OCR0A);
-  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(244, GetTimerCompareMatch(timers[0]));
-  TEST_ASSERT_EQUAL(8, GetTimerCompareMatchesPerCycle(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(8, GetTimerCompareMatchesPerCycle(timers[0]));
 }
 
 TEST(TimerDriver, HiFreqAccuracy)
@@ -461,7 +461,7 @@ TEST(TimerDriver, HiFreqAccuracy)
   TEST_ASSERT(SetTimerCycleTimeSec(timers[0], 1));
   TEST_ASSERT_EQUAL_UINT8(0x05, (TCCR0B & ((1<<CS02) | (1<<CS01) | (1<<CS00))));
   TEST_ASSERT_EQUAL_UINT8(252, OCR0A);
-  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(252, GetTimerCompareMatch(timers[0]));
-  TEST_ASSERT_EQUAL(31, GetTimerCompareMatchesPerCycle(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(31, GetTimerCompareMatchesPerCycle(timers[0]));
 }
