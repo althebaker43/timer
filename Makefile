@@ -37,3 +37,18 @@ INCLUDE_DIRS =\
   $(PROJECT_HOME_DIR)/mocks
   
 include $(UNITY_BUILD_HOME)/MakefileWorker.mk
+
+AVR_GCC=avr-gcc
+
+AVR_RESIDUE= \
+	     avr_$(COMPONENT_NAME).o
+
+.PHONY : avr
+avr : avr_$(COMPONENT_NAME).o
+
+avr_$(COMPONENT_NAME).o : src/$(COMPONENT_NAME).c include/$(COMPONENT_NAME).h
+	$(AVR_GCC) -c -o $@ $< -Iinclude -Itest/mocks
+
+.PHONY : avr_clean
+avr_clean :
+	rm -f $(AVR_RESIDUE)
