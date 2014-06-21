@@ -19,6 +19,7 @@ TEST_GROUP_RUNNER(TimerDriver)
   RUN_TEST_CASE(TimerDriver, StoppedAfterStop);
   RUN_TEST_CASE(TimerDriver, SetCycleTimeMilliSec);
   RUN_TEST_CASE(TimerDriver, SetCycleTimeSec);
+  RUN_TEST_CASE(TimerDriver, CycleTimeOverflow);
   RUN_TEST_CASE(TimerDriver, HiFreqAccuracy);
   RUN_TEST_CASE(TimerDriver, CompareOutputMode);
 }

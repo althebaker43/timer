@@ -23,43 +23,58 @@ typedef enum TimerStatus_enum
  *
  * This only needs to be called once after system reset
  */
-void InitTimers();
+void
+InitTimers();
 
 /**
  * Allocates a new timer context (if possible)
  *
  * \return Pointer to new context, or NULL if not created
  */
-TimerInstance* CreateTimer();
+TimerInstance*
+CreateTimer();
 
 /**
  * Destroys a given timer context
  */
-void DestroyTimer(TimerInstance**);
+void
+DestroyTimer(
+    TimerInstance** instance  /**< Pointer to pointer to instance to be destroyed */
+    );
 
 /**
  * Destroys all timers in use
  *
  * \note All existing TimerInstance pointers are invalidated by this function
  */
-void DestroyAllTimers();
+void
+DestroyAllTimers();
 
 /**
  * Provides the given timer's status
  *
  * \return Status of the given timer
  */
-TimerStatus GetTimerStatus(TimerInstance*);
+TimerStatus
+GetTimerStatus(
+    TimerInstance*  instance  /**< Pointer to instance of timer to get status of */
+    );
 
 /**
  * Provides the given timer's system clock source enumerator
  */
-uint8_t GetTimerClockSource(TimerInstance*);
+uint8_t
+GetTimerClockSource(
+    TimerInstance*  instance  /**< Pointer to instance of timer to get source of */
+    );
 
 /**
  * Provides the given timer's compare match value
  */
-uint8_t GetTimerCompareMatch(TimerInstance*);
+uint8_t
+GetTimerCompareMatch(
+    TimerInstance*  instance  /**< Pointer to instance of timer to get match value of */
+    );
 
 /**
  * Provides the given timer's number of compare matches per cycle
@@ -70,42 +85,70 @@ uint8_t GetTimerCompareMatch(TimerInstance*);
  *
  * \return Number of compare matches per cycle, or -1 if invalid instance is given
  */
-uint8_t GetTimerCompareMatchesPerCycle(TimerInstance*);
+uint8_t
+GetTimerCompareMatchesPerCycle(
+    TimerInstance*  instance  /**< Pointer to instance of timer get matches-per-cycle of */
+    );
 
 /**
  * Starts the given timer, if not already running
  */
-void StartTimer(TimerInstance*);
+void
+StartTimer(
+    TimerInstance*  instance  /**< Pointer to instance of timer to start */
+    );
 
 /**
  * Stops the given timer, if not already stopped
  */
-void StopTimer(TimerInstance*);
+void
+StopTimer(
+    TimerInstance*  instance  /**< Pointer to instance of timer to  stop */
+    );
 
 /**
  * Sets the timer cycle time in milliseconds
  *
  * \return Nonzero if the timer cycle time was set, zero otherwise
  */
-uint8_t SetTimerCycleTimeMilliSec(TimerInstance*, uint16_t);
+uint8_t
+SetTimerCycleTimeMilliSec(
+    TimerInstance*  instance,   /**< Pointer to instance of timer to set period of */
+    uint16_t        numMilliSec /**< Number of milliseconds to set period to */
+    );
 
 /**
  * Sets the timer cycle time in seconds
  *
  * \return Nonzero if the timer cycle time was set, zero otherwise
  */
-uint8_t SetTimerCycleTimeSec(TimerInstance*, uint8_t);
+uint8_t
+SetTimerCycleTimeSec(
+    TimerInstance*  instance, /**< Pointer to instance of timer to set period of */
+    uint8_t         numSec    /**< Number of seconds to set period to */
+    );
 
 /**
  * Provides the compare output mode for a given timer
+ *
+ * \return Identifier of compare output mode of given timer and output
  */
-uint8_t GetTimerCompareOutputMode(TimerInstance*, uint8_t);
+uint8_t
+GetTimerCompareOutputMode(
+    TimerInstance*  instance, /**< Pointer to instance of timer to get mode of */
+    uint8_t         output    /**< Identifier of output to get mode of */
+    );
 
 /**
  * Sets the compare output mode of a timer
  *
  * \return Nonzero if the timer output mode was set, zero otherwise
  */
-uint8_t SetTimerCompareOutputMode(TimerInstance*, uint8_t, uint8_t);
+uint8_t
+SetTimerCompareOutputMode(
+    TimerInstance*  instance, /**< Pointer to instance of timer to set mode of */
+    uint8_t         output,   /**< Identifier of output to set mode of */
+    uint8_t         mode      /**< Identifier of compare output mode to set to */
+    );
 
 #endif /* TIMER_DRIVER */

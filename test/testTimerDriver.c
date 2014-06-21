@@ -376,7 +376,7 @@ TEST(TimerDriver, StoppedOnDestroy)
 
 TEST(TimerDriver, NoRunningWithoutTime)
 {
-  TEST_IGNORE();
+  TEST_IGNORE_MESSAGE("Detection for uninitialized timer period not yet implemented.");
 }
 
 TEST(TimerDriver, RunningAfterStart)
@@ -482,6 +482,11 @@ TEST(TimerDriver, SetCycleTimeSec)
   TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(244, GetTimerCompareMatch(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(8, GetTimerCompareMatchesPerCycle(timers[0]));
+}
+
+TEST(TimerDriver, CycleTimeOverflow)
+{
+  TEST_IGNORE_MESSAGE("Overflow detection for cycle times not yet implemented.");
 }
 
 TEST(TimerDriver, HiFreqAccuracy)

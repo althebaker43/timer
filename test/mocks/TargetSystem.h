@@ -12,11 +12,6 @@
 #define SYSTEM_NUM_TIMERS 3
 
 /**
- * Number of prescaler options for timers
- */
-#define SYSTEM_NUM_TIMER_PRESCALERS 5
-
-/**
  * Enumeration of different clock sources for timer 0
  *
  * \note These must be sorted from highest to lowest in frequency
@@ -57,7 +52,7 @@ typedef enum System_TimerCompareOutputMode_enum
  *
  * \return Frequency of given clock source, or zero if invalid
  */
-unsigned int System_TimerGetSourceFrequency(
+uint32_t System_TimerGetSourceFrequency(
     System_TimerClockSource
     );
 
