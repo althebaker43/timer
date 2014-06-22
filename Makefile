@@ -52,3 +52,14 @@ avr_$(COMPONENT_NAME).o : src/$(COMPONENT_NAME).c include/$(COMPONENT_NAME).h
 .PHONY : avr_clean
 avr_clean :
 	rm -f $(AVR_RESIDUE)
+
+SAMPLE_ROOT=samples
+SAMPLES= \
+	 trinket
+
+.PHONY : samples
+samples : $(SAMPLES)
+
+.PHONY : trinket_samples
+$(SAMPLES) :
+	$(MAKE) -C $(SAMPLE_ROOT)/$@
