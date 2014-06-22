@@ -16,8 +16,12 @@ RESIDUE= \
 $(PROJECT).hex : $(PROJECT).elf
 	$(OBJCOPY) -O ihex $< $(PROJECT).hex
 
-$(PROJECT).elf :
+$(PROJECT).elf : $(PROJECT).c TargetSystem.h
 	$(CC) -o $@ $(CFLAGS) $(INCLUDE_DIRS) $(PROJECT).c $(TIMER_SOURCE)
+
+.PHONY : program
+program : $(PROJECT).hex
+	avrdude -C avrdude.conf -c usbtiny -p attiny85 -U flash:w:$<
 
 .PHONY : clean
 clean :

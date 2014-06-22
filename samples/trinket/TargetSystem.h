@@ -12,7 +12,7 @@
  */
 #define SYSTEM_NUM_TIMERS 1
 
-#define SYSTEM_CORE_CLOCK_FREQUENCY 1000000
+#define SYSTEM_CORE_CLOCK_FREQUENCY 8000000
 
 /**
  * Enumeration of different clock sources for timer 0
@@ -126,7 +126,7 @@ static inline uint8_t System_TimerSetCompareMatch(
     uint8_t compareValue
     )
 {
-  OCR0A = compareValue;
+  OCR0B = compareValue;
   return TRUE;
 }
 

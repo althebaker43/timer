@@ -5,6 +5,9 @@ int main()
 {
   InitTimers();
 
+  // Set PB0(OC0A) to output
+  DDRB |= (1<<DDB0);
+
   TimerInstance* timer = CreateTimer();
   SetTimerCycleTimeMilliSec(
       timer,
