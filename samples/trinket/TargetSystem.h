@@ -126,7 +126,7 @@ static inline uint8_t System_TimerSetCompareMatch(
     uint8_t compareValue
     )
 {
-  OCR0B = compareValue;
+  OCR0A = compareValue;
   return TRUE;
 }
 
