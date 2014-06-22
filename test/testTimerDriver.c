@@ -114,6 +114,11 @@ enum PRR_Bits
  */
 static uint32_t coreClockFrequency = 1000000;
 
+/**
+ * Pointer to timer compare match event callback function
+ */
+static void (*timerCompareMatchCallback)(void) = NULL;
+
 uint32_t System_TimerGetSourceFrequency(
     System_TimerClockSource clockSource
     )
@@ -207,6 +212,14 @@ uint8_t System_TimerSetCompareOutputMode(
   return TRUE;
 }
 
+void
+System_RegisterCallback(
+    void (*callback)(void)
+    )
+{
+  timerCompareMatchCallback = callback;
+}
+
 static void testCreateAllTimers()
 {
   InitTimers();
@@ -256,6 +269,7 @@ TEST_SETUP(TimerDriver)
   TIFR = 0;
   PRR = 0;
   coreClockFrequency = 1000000; // Default core frequency to 1MHz
+  timerCompareMatchCallback = NULL;
 }
 
 TEST_TEAR_DOWN(TimerDriver)
@@ -504,6 +518,41 @@ TEST(TimerDriver, HiFreqAccuracy)
   TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(252, GetTimerCompareMatch(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(31, GetTimerCompareMatchesPerCycle(timers[0]));
+}
+
+TEST(TimerDriver, CountUpOnCompareMatch)
+{
+  testCreateAllTimers();
+
+  TEST_ASSERT_NULL(timerCompareMatchCallback);
+
+  TEST_ASSERT(SetTimerCycleTimeSec(timers[0], 1));
+  
+  StartTimer(timers[0]);
+  TEST_ASSERT_NOT_NULL(timerCompareMatchCallback);
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
+
+  timerCompareMatchCallback();
+  TEST_ASSERT_EQUAL_UINT8(1, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
+
+  timerCompareMatchCallback();
+  TEST_ASSERT_EQUAL_UINT8(2, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
+
+  timerCompareMatchCallback();
+  TEST_ASSERT_EQUAL_UINT8(3, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
+
+  timerCompareMatchCallback();
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(1, GetNumTimerCycles(timers[0]));
+}
+
+TEST(TimerDriver, CompareMatchMultiTimers)
+{
+  TEST_IGNORE_MESSAGE("Compare match callbacks for multiple timers not yet implemented.");
 }
 
 TEST(TimerDriver, CompareOutputMode)

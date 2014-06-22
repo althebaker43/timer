@@ -14,12 +14,19 @@ struct TimerInstance_struct
   uint8_t                       compareMatch;           /**< Value to trigger a compare match on */
   uint8_t                       compareMatchesPerCycle; /**< Number of compare matches per timer cycle */
   System_TimerCompareOutputMode compareOutputMode;      /**< Compare output mode */
+  uint8_t                       numCompareMatches;      /**< Number of compare matches counted in current cycle */
+  uint8_t                       numCycles;              /**< Number of cycles counted */
 };
 
 static uint8_t timersInitialized = FALSE;
 static TimerInstance timerInstances [SYSTEM_NUM_TIMERS];
 static uint8_t timerInstancesInUse [SYSTEM_NUM_TIMERS];
 static uint8_t numTimerInstances = 0;
+
+/**
+ * Callback function for timer compare match events
+ */
+static void TimerCompareMatchCallback();
 
 void
 InitTimers()
@@ -164,6 +171,7 @@ void
 StartTimer(TimerInstance* instance)
 {
   instance->status = TIMER_STATUS_RUNNING;
+  System_RegisterCallback(TimerCompareMatchCallback);
   System_TimerSetClockSource(SYSTEM_TIMER_CLKSOURCE_INT);
 }
 
@@ -262,4 +270,38 @@ SetTimerCompareOutputMode(
   {
     return FALSE;
   }
+}
+
+uint8_t
+GetNumTimerCompareMatches(
+    TimerInstance*  instance
+    )
+{
+  return instance->numCompareMatches;
+}
+
+uint8_t
+GetNumTimerCycles(
+    TimerInstance*  instance
+    )
+{
+  return instance->numCycles;
+}
+
+static void
+TimerCompareMatchCallback()
+{
+  TimerInstance* instance = &timerInstances[0];
+
+  if (instance->numCompareMatches == instance->compareMatchesPerCycle - 1)
+  {
+    instance->numCompareMatches = 0;
+    instance->numCycles++;
+  }
+  else
+  {
+    instance->numCompareMatches++;
+  }
+
+  return;
 }

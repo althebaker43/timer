@@ -151,4 +151,22 @@ SetTimerCompareOutputMode(
     uint8_t         mode      /**< Identifier of compare output mode to set to */
     );
 
+/**
+ * Provides the number of compare matches counted so far
+ *
+ * \note This gets reset to zero after every cycle
+ */
+uint8_t
+GetNumTimerCompareMatches(
+    TimerInstance*  instance  /**< Pointer to instance of timer to get number of compare matches from */
+    );
+
+/**
+ * Provides the number of cycles counted so far
+ */
+uint8_t
+GetNumTimerCycles(
+    TimerInstance*  instance  /**< Pointer to instance of timer to get number of cycles from */
+    );
+
 #endif /* TIMER_DRIVER */

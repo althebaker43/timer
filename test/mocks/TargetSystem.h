@@ -83,4 +83,12 @@ uint8_t System_TimerSetCompareOutputMode(
     System_TimerCompareOutputMode
     );
 
+/**
+ * Registers a callback function to call when an event occurs
+ */
+void
+System_RegisterCallback(
+    void (*callback)(void)  /**< Pointer to callback function to register */
+    );
+
 #endif /* TARGET_SYSTEM */
