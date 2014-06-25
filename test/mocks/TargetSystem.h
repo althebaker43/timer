@@ -7,9 +7,15 @@
 #define FALSE 0
 
 /**
- * Total number of timer modules in the system
+ * Enumeration of all timer modules in system
  */
-#define SYSTEM_NUM_TIMERS 3
+typedef enum System_TimerID_enum
+{
+  SYSTEM_TIMER0,
+  SYSTEM_TIMER1,
+  SYSTEM_TIMER2,
+  SYSTEM_NUM_TIMERS
+} System_TimerID;
 
 /**
  * Enumeration of different clock sources for timer 0
@@ -48,6 +54,18 @@ typedef enum System_TimerCompareOutputMode_enum
 } System_TimerCompareOutputMode;
 
 /**
+ * Enumeration of all system events (interrupts)
+ */
+typedef enum System_EventType_enum
+{
+  SYSTEM_EVENT_TIMER0_COMPAREMATCH,
+  SYSTEM_EVENT_TIMER1_COMPAREMATCH,
+  SYSTEM_EVENT_TIMER2_COMPAREMATCH,
+  SYSTEM_NUM_EVENTS,
+  SYSTEM_EVENT_INVALID
+} System_EventType;
+
+/**
  * Provides the frequency in Hz for a given clock source
  *
  * \return Frequency of given clock source, or zero if invalid
@@ -84,11 +102,20 @@ uint8_t System_TimerSetCompareOutputMode(
     );
 
 /**
- * Registers a callback function to call when an event occurs
+ * Registers a callback function to call when a given event occurs
  */
 void
 System_RegisterCallback(
-    void (*callback)(void)  /**< Pointer to callback function to register */
+    void (*callback)(System_EventType), /**< Pointer to callback function to register */
+    System_EventType  event             /**< Type of event to register the callback for */
+    );
+
+/**
+ * Provides the callback event type for the given timer
+ */
+System_EventType
+System_GetTimerCallbackEvent(
+    System_TimerID  timerID
     );
 
 #endif /* TARGET_SYSTEM */

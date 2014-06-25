@@ -9,6 +9,7 @@
 
 struct TimerInstance_struct
 {
+  System_TimerID                id;                     /**< System ID of timer */
   TimerStatus                   status;                 /**< Current status of the timer */
   System_TimerClockSource       clockSource;            /**< Clock source currently used for this timer */
   uint8_t                       compareMatch;           /**< Value to trigger a compare match on */
@@ -27,6 +28,11 @@ static uint8_t numTimerInstances = 0;
  * Callback function for timer compare match events
  */
 static void TimerCompareMatchCallback();
+
+/**
+ * Function for getting the timer's system ID
+ */
+static System_TimerID GetSystemID(TimerInstance*);
 
 void
 InitTimers()
@@ -71,7 +77,16 @@ CreateTimer()
     if (timerInstancesInUse[timerIdx] == FALSE)
     {
       TimerInstance* newTimer = &timerInstances[timerIdx];
+      
+      newTimer->id = timerIdx;
       newTimer->status = TIMER_STATUS_STOPPED;
+      newTimer->clockSource = SYSTEM_TIMER_CLKSOURCE_OFF;
+      newTimer->compareMatch = 0;
+      newTimer->compareMatchesPerCycle = 1;
+      newTimer->compareOutputMode = SYSTEM_TIMER_OUTPUT_MODE_NONE;
+      newTimer->numCompareMatches = 0;
+      newTimer->numCycles = 0;
+
       timerInstancesInUse[timerIdx] = TRUE;
       numTimerInstances++;
       return newTimer;
@@ -170,9 +185,17 @@ GetTimerCompareMatchesPerCycle(TimerInstance* instance)
 void
 StartTimer(TimerInstance* instance)
 {
-  instance->status = TIMER_STATUS_RUNNING;
-  System_RegisterCallback(TimerCompareMatchCallback);
+  
+  System_TimerID id = GetSystemID(instance);
+  System_EventType event = System_GetTimerCallbackEvent(id);
+
+  System_RegisterCallback(
+      TimerCompareMatchCallback,
+      event
+      );
+
   System_TimerSetClockSource(SYSTEM_TIMER_CLKSOURCE_INT);
+  instance->status = TIMER_STATUS_RUNNING;
 }
 
 void
@@ -289,9 +312,29 @@ GetNumTimerCycles(
 }
 
 static void
-TimerCompareMatchCallback()
+TimerCompareMatchCallback(
+    System_EventType  event
+    )
 {
-  TimerInstance* instance = &timerInstances[0];
+  uint8_t timerIdx;
+  for(
+      timerIdx = 0;
+      timerIdx < SYSTEM_NUM_TIMERS;
+      timerIdx++
+     )
+  {
+    if (System_GetTimerCallbackEvent(GetSystemID(&timerInstances[timerIdx])) == event)
+    {
+      break;
+    }
+  }
+  
+  if (timerIdx == SYSTEM_NUM_TIMERS)
+  {
+    return;
+  }
+
+  TimerInstance* instance = &timerInstances[timerIdx];
 
   if (instance->numCompareMatches == instance->compareMatchesPerCycle - 1)
   {
@@ -304,4 +347,12 @@ TimerCompareMatchCallback()
   }
 
   return;
+}
+
+System_TimerID
+GetSystemID(
+    TimerInstance*  instance
+    )
+{
+  return instance->id;
 }

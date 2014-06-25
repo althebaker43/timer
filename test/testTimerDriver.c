@@ -115,9 +115,9 @@ enum PRR_Bits
 static uint32_t coreClockFrequency = 1000000;
 
 /**
- * Pointer to timer compare match event callback function
+ * Pointers to timer compare match event callback functions
  */
-static void (*timerCompareMatchCallback)(void) = NULL;
+static void (*timerCompareMatchCallbacks [SYSTEM_NUM_EVENTS])(System_EventType);
 
 uint32_t System_TimerGetSourceFrequency(
     System_TimerClockSource clockSource
@@ -214,10 +214,28 @@ uint8_t System_TimerSetCompareOutputMode(
 
 void
 System_RegisterCallback(
-    void (*callback)(void)
+    void (*callback)(System_EventType),
+    System_EventType  event
     )
 {
-  timerCompareMatchCallback = callback;
+  if (event < SYSTEM_NUM_EVENTS)
+  {
+    timerCompareMatchCallbacks[event] = callback;
+  }
+}
+
+System_EventType
+System_GetTimerCallbackEvent(
+    System_TimerID  timerID
+    )
+{
+  switch (timerID)
+  {
+    case SYSTEM_TIMER0: return SYSTEM_EVENT_TIMER0_COMPAREMATCH; break;
+    case SYSTEM_TIMER1: return SYSTEM_EVENT_TIMER1_COMPAREMATCH; break;
+    case SYSTEM_TIMER2: return SYSTEM_EVENT_TIMER2_COMPAREMATCH; break;
+    default: return SYSTEM_EVENT_INVALID; break;
+  };
 }
 
 static void testCreateAllTimers()
@@ -269,7 +287,16 @@ TEST_SETUP(TimerDriver)
   TIFR = 0;
   PRR = 0;
   coreClockFrequency = 1000000; // Default core frequency to 1MHz
-  timerCompareMatchCallback = NULL;
+
+  uint8_t eventIdx;
+  for(
+      eventIdx = 0;
+      eventIdx < SYSTEM_NUM_EVENTS;
+      eventIdx++
+     )
+  {
+    timerCompareMatchCallbacks[eventIdx] = NULL;
+  }
 }
 
 TEST_TEAR_DOWN(TimerDriver)
@@ -306,7 +333,16 @@ TEST(TimerDriver, CreateTimer)
       timerIdx++
      )
   {
-    TEST_ASSERT_NOT_NULL(timers[timerIdx]);
+    TimerInstance* curTimer = timers[timerIdx];
+    
+    TEST_ASSERT_NOT_NULL(curTimer);
+    TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCompareMatches(curTimer));
+    TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(curTimer));
+    TEST_ASSERT_EQUAL_UINT8(TIMER_STATUS_STOPPED, GetTimerStatus(curTimer));
+    TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_OFF, GetTimerClockSource(curTimer));
+    TEST_ASSERT_EQUAL_UINT8(0, GetTimerCompareMatch(curTimer));
+    TEST_ASSERT_EQUAL_UINT8(1, GetTimerCompareMatchesPerCycle(curTimer));
+    TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_OUTPUT_MODE_NONE, GetTimerCompareOutputMode(curTimer, SYSTEM_TIMER_OUTPUT_A));
   }
 }
 
@@ -524,35 +560,76 @@ TEST(TimerDriver, CountUpOnCompareMatch)
 {
   testCreateAllTimers();
 
-  TEST_ASSERT_NULL(timerCompareMatchCallback);
+  TEST_ASSERT_NULL(timerCompareMatchCallbacks[0]);
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
 
   TEST_ASSERT(SetTimerCycleTimeSec(timers[0], 1));
   
   StartTimer(timers[0]);
-  TEST_ASSERT_NOT_NULL(timerCompareMatchCallback);
+  TEST_ASSERT_NOT_NULL(timerCompareMatchCallbacks[0]);
   TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCompareMatches(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
 
-  timerCompareMatchCallback();
+  (timerCompareMatchCallbacks[0])(SYSTEM_EVENT_TIMER0_COMPAREMATCH);
   TEST_ASSERT_EQUAL_UINT8(1, GetNumTimerCompareMatches(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
 
-  timerCompareMatchCallback();
+  (timerCompareMatchCallbacks[0])(SYSTEM_EVENT_TIMER0_COMPAREMATCH);
   TEST_ASSERT_EQUAL_UINT8(2, GetNumTimerCompareMatches(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
 
-  timerCompareMatchCallback();
+  (timerCompareMatchCallbacks[0])(SYSTEM_EVENT_TIMER0_COMPAREMATCH);
   TEST_ASSERT_EQUAL_UINT8(3, GetNumTimerCompareMatches(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
 
-  timerCompareMatchCallback();
+  (timerCompareMatchCallbacks[0])(SYSTEM_EVENT_TIMER0_COMPAREMATCH);
   TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCompareMatches(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(1, GetNumTimerCycles(timers[0]));
 }
 
 TEST(TimerDriver, CompareMatchMultiTimers)
 {
-  TEST_IGNORE_MESSAGE("Compare match callbacks for multiple timers not yet implemented.");
+  testCreateAllTimers();
+
+  TEST_ASSERT_NULL(timerCompareMatchCallbacks[0]);
+  TEST_ASSERT_NULL(timerCompareMatchCallbacks[1]);
+
+  SetTimerCycleTimeSec(timers[0], 1);
+  StartTimer(timers[0]);
+  SetTimerCycleTimeMilliSec(timers[1], 500);
+  StartTimer(timers[1]);
+
+  TEST_ASSERT_NOT_NULL(timerCompareMatchCallbacks[0]);
+  TEST_ASSERT_NOT_NULL(timerCompareMatchCallbacks[1]);
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCompareMatches(timers[1]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[1]));
+
+  (*timerCompareMatchCallbacks[0])(SYSTEM_EVENT_TIMER0_COMPAREMATCH);
+  TEST_ASSERT_EQUAL_UINT8(1, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCompareMatches(timers[1]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[1]));
+
+  (*timerCompareMatchCallbacks[1])(SYSTEM_EVENT_TIMER1_COMPAREMATCH);
+  TEST_ASSERT_EQUAL_UINT8(1, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(1, GetNumTimerCompareMatches(timers[1]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[1]));
+
+  (*timerCompareMatchCallbacks[1])(SYSTEM_EVENT_TIMER1_COMPAREMATCH);
+  TEST_ASSERT_EQUAL_UINT8(1, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCompareMatches(timers[1]));
+  TEST_ASSERT_EQUAL_UINT8(1, GetNumTimerCycles(timers[1]));
+
+  (*timerCompareMatchCallbacks[0])(SYSTEM_EVENT_TIMER0_COMPAREMATCH);
+  TEST_ASSERT_EQUAL_UINT8(2, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCycles(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(0, GetNumTimerCompareMatches(timers[1]));
+  TEST_ASSERT_EQUAL_UINT8(1, GetNumTimerCycles(timers[1]));
 }
 
 TEST(TimerDriver, CompareOutputMode)
