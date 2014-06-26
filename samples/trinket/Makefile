@@ -16,8 +16,11 @@ RESIDUE= \
 $(PROJECT).hex : $(PROJECT).elf
 	$(OBJCOPY) -O ihex $< $(PROJECT).hex
 
-$(PROJECT).elf : $(PROJECT).c TargetSystem.h
-	$(CC) -o $@ $(CFLAGS) $(INCLUDE_DIRS) $(PROJECT).c $(TIMER_SOURCE)
+$(PROJECT).elf : $(PROJECT).c TargetSystem.o
+	$(CC) -o $@ $(CFLAGS) $(INCLUDE_DIRS) $(PROJECT).c $(TIMER_SOURCE) TargetSystem.o
+
+TargetSystem.o : TargetSystem.c TargetSystem.h
+	$(CC) -c -o $@ $(CFLAGS) $<
 
 .PHONY : program
 program : $(PROJECT).hex

@@ -7,12 +7,16 @@
 #define TRUE 1
 #define FALSE 0
 
-/**
- * Total number of timer modules in the system
- */
-#define SYSTEM_NUM_TIMERS 1
-
 #define SYSTEM_CORE_CLOCK_FREQUENCY 8000000
+
+/**
+ * Enumeration of all timer modules in system
+ */
+typedef enum System_TimerID_enum
+{
+  SYSTEM_TIMER0,
+  SYSTEM_NUM_TIMERS
+} System_TimerID;
 
 /**
  * Enumeration of different clock sources for timer 0
@@ -49,6 +53,18 @@ typedef enum System_TimerCompareOutputMode_enum
   SYSTEM_TIMER_OUTPUT_MODE_CLEAR,
   SYSTEM_TIMER_OUTPUT_MODE_TOGGLE
 } System_TimerCompareOutputMode;
+
+/**
+ * Enumeration of all system events (interrupts)
+ */
+typedef enum System_EventType_enum
+{
+  SYSTEM_EVENT_TIMER0_COMPAREMATCH,
+  SYSTEM_EVENT_TIMER1_COMPAREMATCH,
+  SYSTEM_EVENT_TIMER2_COMPAREMATCH,
+  SYSTEM_NUM_EVENTS,
+  SYSTEM_EVENT_INVALID
+} System_EventType;
 
 /**
  * Provides the frequency in Hz for a given clock source
@@ -163,6 +179,70 @@ static inline uint8_t System_TimerSetCompareOutputMode(
   };
 
   return TRUE;
+}
+
+/**
+ * Registers a callback function to call when a given event occurs
+ */
+void
+System_RegisterCallback(
+    void (*callback)(System_EventType), /**< Pointer to callback function to register */
+    System_EventType  event             /**< Type of event to register the callback for */
+    );
+
+/**
+ * Enables interrupts for a given event
+ */
+static inline uint8_t
+System_EnableEvent(
+    System_EventType  event /**< Type of event to enable interrupts for */
+    )
+{
+  switch (event)
+  {
+    case SYSTEM_EVENT_TIMER0_COMPAREMATCH: TIMSK |= (1<<OCIE0A);
+    
+    default:
+      return FALSE;
+      break;
+  };
+
+  return TRUE;
+}
+
+/**
+ * Disables interrupts for a given event
+ */
+static inline uint8_t
+System_DisableEvent(
+    System_EventType  event /** Type of event to disable interrupts for */
+    )
+{
+  switch (event)
+  {
+    case SYSTEM_EVENT_TIMER0_COMPAREMATCH: TIMSK &= ~((1<<OCIE0A));
+    
+    default:
+      return FALSE;
+      break;
+  };
+
+  return TRUE;
+}
+
+/**
+ * Provides the callback event type for the given timer
+ */
+static inline System_EventType
+System_GetTimerCallbackEvent(
+    System_TimerID  timerID
+    )
+{
+  switch (timerID)
+  {
+    case SYSTEM_TIMER0: return SYSTEM_EVENT_TIMER0_COMPAREMATCH; break;
+    default: return SYSTEM_EVENT_INVALID; break;
+  };
 }
 
 #endif /* TARGET_SYSTEM */
