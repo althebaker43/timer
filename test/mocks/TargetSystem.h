@@ -111,6 +111,22 @@ System_RegisterCallback(
     );
 
 /**
+ * Enables interrupts for a given event
+ */
+uint8_t
+System_EnableEvent(
+    System_EventType  event /**< Type of event to enable interrupts for */
+    );
+
+/**
+ * Disables interrupts for a given event
+ */
+uint8_t
+System_DisableEvent(
+    System_EventType  event /** Type of event to disable interrupts for */
+    );
+
+/**
  * Provides the callback event type for the given timer
  */
 System_EventType

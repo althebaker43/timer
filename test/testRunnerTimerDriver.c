@@ -21,6 +21,7 @@ TEST_GROUP_RUNNER(TimerDriver)
   RUN_TEST_CASE(TimerDriver, SetCycleTimeSec);
   RUN_TEST_CASE(TimerDriver, CycleTimeOverflow);
   RUN_TEST_CASE(TimerDriver, HiFreqAccuracy);
+  RUN_TEST_CASE(TimerDriver, EnableCompareMatchEvents);
   RUN_TEST_CASE(TimerDriver, CountUpOnCompareMatch);
   RUN_TEST_CASE(TimerDriver, CompareMatchMultiTimers);
   RUN_TEST_CASE(TimerDriver, CompareOutputMode);

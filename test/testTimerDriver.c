@@ -224,6 +224,40 @@ System_RegisterCallback(
   }
 }
 
+uint8_t
+System_EnableEvent(
+    System_EventType  event
+    )
+{
+  switch (event)
+  {
+    case SYSTEM_EVENT_TIMER0_COMPAREMATCH: TIMSK |= (1<<OCIE0A);
+    
+    default:
+      return FALSE;
+      break;
+  };
+
+  return TRUE;
+}
+
+uint8_t
+System_DisableEvent(
+    System_EventType  event
+    )
+{
+  switch (event)
+  {
+    case SYSTEM_EVENT_TIMER0_COMPAREMATCH: TIMSK &= ~((1<<OCIE0A));
+    
+    default:
+      return FALSE;
+      break;
+  };
+
+  return TRUE;
+}
+
 System_EventType
 System_GetTimerCallbackEvent(
     System_TimerID  timerID
@@ -554,6 +588,21 @@ TEST(TimerDriver, HiFreqAccuracy)
   TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_CLKSOURCE_INT_PRE1024, GetTimerClockSource(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(252, GetTimerCompareMatch(timers[0]));
   TEST_ASSERT_EQUAL_UINT8(31, GetTimerCompareMatchesPerCycle(timers[0]));
+}
+
+TEST(TimerDriver, EnableCompareMatchEvents)
+{
+  testCreateAllTimers();
+
+  TEST_ASSERT_BITS(((1<<OCIE1A) | (1<<OCIE1B) | (1<<OCIE0A) | (1<<OCIE0B)), 0x00, TIMSK);
+
+  SetTimerCycleTimeSec(timers[0], 1);
+
+  StartTimer(timers[0]);
+  TEST_ASSERT_BITS(((1<<OCIE1A) | (1<<OCIE1B) | (1<<OCIE0A) | (1<<OCIE0B)), 0x10, TIMSK);
+
+  StopTimer(timers[0]);
+  TEST_ASSERT_BITS(((1<<OCIE1A) | (1<<OCIE1B) | (1<<OCIE0A) | (1<<OCIE0B)), 0x00, TIMSK);
 }
 
 TEST(TimerDriver, CountUpOnCompareMatch)

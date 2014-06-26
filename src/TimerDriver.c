@@ -193,6 +193,7 @@ StartTimer(TimerInstance* instance)
       TimerCompareMatchCallback,
       event
       );
+  System_EnableEvent(event);
 
   System_TimerSetClockSource(SYSTEM_TIMER_CLKSOURCE_INT);
   instance->status = TIMER_STATUS_RUNNING;
@@ -203,6 +204,10 @@ StopTimer(TimerInstance* instance)
 {
   instance->status = TIMER_STATUS_STOPPED;
   System_TimerSetClockSource(SYSTEM_TIMER_CLKSOURCE_OFF);
+
+  System_TimerID id = GetSystemID(instance);
+  System_EventType event = System_GetTimerCallbackEvent(id);
+  System_DisableEvent(event);
 }
 
 uint8_t
