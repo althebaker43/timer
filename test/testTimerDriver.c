@@ -272,6 +272,14 @@ System_GetTimerCallbackEvent(
   };
 }
 
+static uint8_t numCustomTimerCycles = 0;
+
+static void
+CustomTimerCycleCounter()
+{
+  numCustomTimerCycles++;
+}
+
 static void testCreateAllTimers()
 {
   InitTimers();
@@ -321,6 +329,7 @@ TEST_SETUP(TimerDriver)
   TIFR = 0;
   PRR = 0;
   coreClockFrequency = 1000000; // Default core frequency to 1MHz
+  numCustomTimerCycles = 0;
 
   uint8_t eventIdx;
   for(
@@ -699,4 +708,21 @@ TEST(TimerDriver, CompareOutputMode)
   TEST_ASSERT(SetTimerCompareOutputMode(timers[0], SYSTEM_TIMER_OUTPUT_A, SYSTEM_TIMER_OUTPUT_MODE_SET));
   TEST_ASSERT_EQUAL_UINT8(SYSTEM_TIMER_OUTPUT_MODE_SET, GetTimerCompareOutputMode(timers[0], SYSTEM_TIMER_OUTPUT_A));
   TEST_ASSERT_EQUAL_UINT8(0xC0, (TCCR0A & ((1<<COM0A1) | (1<<COM0A0) | (1<<COM0B1) | (1<<COM0B0))));
+}
+
+TEST(TimerDriver, CustomCycleHandler)
+{
+  testCreateAllTimers();
+
+  TEST_ASSERT_NULL(GetTimerCycleHandler(timers[0]));
+
+  SetTimerCycleTimeMilliSec(timers[0], 250);
+  TEST_ASSERT(SetTimerCycleHandler(timers[0], CustomTimerCycleCounter));
+
+  TEST_ASSERT_EQUAL_HEX(CustomTimerCycleCounter, GetTimerCycleHandler(timers[0]));
+
+  StartTimer(timers[0]);
+  (*timerCompareMatchCallbacks[0])(SYSTEM_EVENT_TIMER0_COMPAREMATCH);
+  TEST_ASSERT_EQUAL_UINT8(1, GetNumTimerCycles(timers[0]));
+  TEST_ASSERT_EQUAL_UINT8(1, numCustomTimerCycles);
 }

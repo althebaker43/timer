@@ -25,6 +25,7 @@ TEST_GROUP_RUNNER(TimerDriver)
   RUN_TEST_CASE(TimerDriver, CountUpOnCompareMatch);
   RUN_TEST_CASE(TimerDriver, CompareMatchMultiTimers);
   RUN_TEST_CASE(TimerDriver, CompareOutputMode);
+  RUN_TEST_CASE(TimerDriver, CustomCycleHandler);
 }
 
 static void RunAllTests()

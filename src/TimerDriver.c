@@ -17,6 +17,7 @@ struct TimerInstance_struct
   System_TimerCompareOutputMode compareOutputMode;      /**< Compare output mode */
   uint8_t                       numCompareMatches;      /**< Number of compare matches counted in current cycle */
   uint8_t                       numCycles;              /**< Number of cycles counted */
+  TimerCycleHandler             cycleHandler;           /**< Handler function to call for each cycle completion */
 };
 
 static uint8_t timersInitialized = FALSE;
@@ -345,6 +346,11 @@ TimerCompareMatchCallback(
   {
     instance->numCompareMatches = 0;
     instance->numCycles++;
+
+    if (instance->cycleHandler != NULL)
+    {
+      (*(instance->cycleHandler))();
+    }
   }
   else
   {
@@ -360,4 +366,22 @@ GetSystemID(
     )
 {
   return instance->id;
+}
+
+TimerCycleHandler
+GetTimerCycleHandler(
+    TimerInstance*  instance
+    )
+{
+  return instance->cycleHandler;
+}
+
+uint8_t
+SetTimerCycleHandler(
+    TimerInstance*    instance,
+    TimerCycleHandler handler
+    )
+{
+  instance->cycleHandler = handler;
+  return TRUE;
 }

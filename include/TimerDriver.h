@@ -169,4 +169,26 @@ GetNumTimerCycles(
     TimerInstance*  instance  /**< Pointer to instance of timer to get number of cycles from */
     );
 
+/**
+ * Typedef for timer cycle handler
+ */
+typedef void (*TimerCycleHandler)(void);
+
+/**
+ * Provides the given timer's cycle completion handler
+ */
+TimerCycleHandler
+GetTimerCycleHandler(
+    TimerInstance*  instance  /**< Pointer to instance of timer to get cycle handler for */
+    );
+
+/**
+ * Sets the given timer's cycle completion handler
+ */
+uint8_t
+SetTimerCycleHandler(
+    TimerInstance*    instance, /**< Pointer to instance of timer to set cycle handler for */
+    TimerCycleHandler handler   /**< Handler call on each cycle completion */
+    );
+
 #endif /* TIMER_DRIVER */
