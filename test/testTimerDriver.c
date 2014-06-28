@@ -186,28 +186,56 @@ uint8_t System_TimerSetCompareOutputMode(
     System_TimerCompareOutputMode outputMode
     )
 {
+  uint8_t TCCR0A_copy = TCCR0A & ~((1<<COM0A1) | (1<<COM0A0));
+
   switch (outputMode)
   {
     case SYSTEM_TIMER_OUTPUT_MODE_NONE:
-      TCCR0A = 0;
       break;
 
     case SYSTEM_TIMER_OUTPUT_MODE_SET:
-      TCCR0A = (1<<COM0A1) | (1<<COM0A0);
+      TCCR0A_copy |= (1<<COM0A1) | (1<<COM0A0);
       break;
 
     case SYSTEM_TIMER_OUTPUT_MODE_CLEAR:
-      TCCR0A = (1<<COM0A1);
+      TCCR0A_copy |= (1<<COM0A1);
       break;
 
     case SYSTEM_TIMER_OUTPUT_MODE_TOGGLE:
-      TCCR0A = (1<<COM0A0);
+      TCCR0A_copy |= (1<<COM0A0);
       break;
 
     default:
       return FALSE;
       break;
   };
+
+  TCCR0A = TCCR0A_copy;
+
+  return TRUE;
+}
+
+uint8_t
+System_TimerSetWaveGenMode(
+    System_TimerWaveGenMode waveGenMode
+    )
+{
+  uint8_t TCCR0A_copy = TCCR0A & ~((1<<WGM01) | (1<<WGM00));
+  uint8_t TCCR0B_copy = TCCR0B & ~((1<<WGM02));
+
+  switch (waveGenMode)
+  {
+    case SYSTEM_TIMER_WAVEGEN_MODE_CTC:
+      TCCR0A_copy |= ((1<<WGM01));
+      break;
+
+    default:
+      return FALSE;
+      break;
+  };
+
+  TCCR0A = TCCR0A_copy;
+  TCCR0B = TCCR0B_copy;
 
   return TRUE;
 }
@@ -456,6 +484,15 @@ TEST(TimerDriver, StoppedOnInit)
   timers[0] = CreateTimer();
   TEST_ASSERT_EQUAL_UINT8(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
   TEST_ASSERT_BITS_LOW(((1<<CS02) | (1<<CS01) | (1<<CS00)), TCCR0B);
+}
+
+TEST(TimerDriver, ClearTimerOnCompareMatch)
+{
+  testCreateAllTimers();
+
+  StartTimer(timers[0]);
+  TEST_ASSERT_BITS(((1<<WGM01) | (1<<WGM00)), 0x02, TCCR0A);
+  TEST_ASSERT_BITS(((1<<WGM02)), 0x00, TCCR0B);
 }
 
 TEST(TimerDriver, StoppedOnDestroy)

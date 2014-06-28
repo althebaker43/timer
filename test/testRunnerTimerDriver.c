@@ -12,6 +12,7 @@ TEST_GROUP_RUNNER(TimerDriver)
   RUN_TEST_CASE(TimerDriver, NullTimerStatus);
   RUN_TEST_CASE(TimerDriver, InvalidTimerStatus);
   RUN_TEST_CASE(TimerDriver, StoppedOnInit);
+  RUN_TEST_CASE(TimerDriver, ClearTimerOnCompareMatch);
   RUN_TEST_CASE(TimerDriver, StoppedOnDestroy);
   RUN_TEST_CASE(TimerDriver, NoRunningWithoutTime);
   RUN_TEST_CASE(TimerDriver, RunningAfterStart);

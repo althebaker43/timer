@@ -196,6 +196,8 @@ StartTimer(TimerInstance* instance)
       );
   System_EnableEvent(event);
 
+  System_TimerSetWaveGenMode(SYSTEM_TIMER_WAVEGEN_MODE_CTC);
+
   System_TimerSetClockSource(SYSTEM_TIMER_CLKSOURCE_INT);
   instance->status = TIMER_STATUS_RUNNING;
 }

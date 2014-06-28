@@ -9,6 +9,11 @@
 typedef struct TimerInstance_struct TimerInstance;
 
 /**
+ * Typedef for timer cycle handler
+ */
+typedef void (*TimerCycleHandler)(void);
+
+/**
  * Enumeration of all possible timer states
  */
 typedef enum TimerStatus_enum
@@ -168,11 +173,6 @@ uint8_t
 GetNumTimerCycles(
     TimerInstance*  instance  /**< Pointer to instance of timer to get number of cycles from */
     );
-
-/**
- * Typedef for timer cycle handler
- */
-typedef void (*TimerCycleHandler)(void);
 
 /**
  * Provides the given timer's cycle completion handler

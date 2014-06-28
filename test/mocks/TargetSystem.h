@@ -54,6 +54,14 @@ typedef enum System_TimerCompareOutputMode_enum
 } System_TimerCompareOutputMode;
 
 /**
+ * Enumeration of timer waveform generation modes
+ */
+typedef enum System_TimerWaveGenMode_enum
+{
+  SYSTEM_TIMER_WAVEGEN_MODE_CTC /**< Clear timer on compare-match */
+} System_TimerWaveGenMode;
+
+/**
  * Enumeration of all system events (interrupts)
  */
 typedef enum System_EventType_enum
@@ -64,6 +72,11 @@ typedef enum System_EventType_enum
   SYSTEM_NUM_EVENTS,
   SYSTEM_EVENT_INVALID
 } System_EventType;
+
+/**
+ * Typedef for system event callback functions
+ */
+typedef void (*System_EventCallback)(System_EventType);
 
 /**
  * Provides the frequency in Hz for a given clock source
@@ -102,12 +115,30 @@ uint8_t System_TimerSetCompareOutputMode(
     );
 
 /**
+ * Sets the timer waveform generation mode
+ *
+ * \return Nonzero if the configuration was successful, zero otherwise
+ */
+uint8_t
+System_TimerSetWaveGenMode(
+    System_TimerWaveGenMode
+    );
+
+/**
  * Registers a callback function to call when a given event occurs
  */
 void
 System_RegisterCallback(
-    void (*callback)(System_EventType), /**< Pointer to callback function to register */
-    System_EventType  event             /**< Type of event to register the callback for */
+    System_EventCallback  callback,     /**< Pointer to callback function to register */
+    System_EventType      event         /**< Type of event to register the callback for */
+    );
+
+/**
+ * Gets a callback registered with the given event, if any
+ */
+System_EventCallback
+System_GetCallback(
+    System_EventType  event /**< Event to get callback function for */
     );
 
 /**
@@ -133,5 +164,19 @@ System_EventType
 System_GetTimerCallbackEvent(
     System_TimerID  timerID
     );
+
+/**
+ * Records that the specified event occurred
+ */
+void
+System_SetEvent(
+    System_EventType  event /**< Type of event to record */
+    );
+
+/**
+ * Gets the next event that was last recorded
+ */
+System_EventType
+System_PopEvent();
 
 #endif /* TARGET_SYSTEM */
