@@ -6,7 +6,7 @@ MCU=attiny85
 TIMER_ROOT=../..
 TIMER_SOURCE=$(TIMER_ROOT)/src/TimerDriver.c
 
-CFLAGS=-mmcu=$(MCU)
+CFLAGS=-Wall -Werror -mmcu=$(MCU)
 INCLUDE_DIRS=-I. -I$(TIMER_ROOT)/include
 
 RESIDUE= \

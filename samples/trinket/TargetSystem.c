@@ -1,7 +1,7 @@
 #include "TargetSystem.h"
 
 
-static void (*timerCompareMatchCallbacks [SYSTEM_NUM_EVENTS])(System_EventType);
+static void (*callbacks [SYSTEM_NUM_EVENTS])(System_EventType);
 
 
 void
@@ -12,6 +12,21 @@ System_RegisterCallback(
 {
   if (event < SYSTEM_NUM_EVENTS)
   {
-    timerCompareMatchCallbacks[event] = callback;
+    callbacks[event] = callback;
+  }
+}
+
+System_EventCallback
+System_GetEventCallback(
+    System_EventType  event
+    )
+{
+  if (event < SYSTEM_NUM_EVENTS)
+  {
+    return callbacks[event];
+  }
+  else
+  {
+    return NULL;
   }
 }

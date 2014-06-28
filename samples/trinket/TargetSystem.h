@@ -1,6 +1,7 @@
 #ifndef TARGET_SYSTEM
 #define TARGET_SYSTEM
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <avr/io.h>
 
@@ -44,6 +45,14 @@ typedef enum System_TimerCompareOutput_enum
 } System_TimerCompareOutput;
 
 /**
+ * Enumeration of timer waveform generation modes
+ */
+typedef enum System_TimerWaveGenMode_enum
+{
+  SYSTEM_TIMER_WAVEGEN_MODE_CTC /**< Clear timer on compare-match */
+} System_TimerWaveGenMode;
+
+/**
  * Enumeration of timer compare output modes
  */
 typedef enum System_TimerCompareOutputMode_enum
@@ -65,6 +74,11 @@ typedef enum System_EventType_enum
   SYSTEM_NUM_EVENTS,
   SYSTEM_EVENT_INVALID
 } System_EventType;
+
+/**
+ * Typedef for system event callback functions
+ */
+typedef void (*System_EventCallback)(System_EventType);
 
 /**
  * Provides the frequency in Hz for a given clock source
@@ -155,22 +169,50 @@ static inline uint8_t System_TimerSetCompareOutputMode(
     System_TimerCompareOutputMode outputMode
     )
 {
+  TCCR0A &= ~((1<<COM0A1) | (1<<COM0A0));
+
   switch (outputMode)
   {
     case SYSTEM_TIMER_OUTPUT_MODE_NONE:
-      TCCR0A = 0;
       break;
 
     case SYSTEM_TIMER_OUTPUT_MODE_SET:
-      TCCR0A = (1<<COM0A1) | (1<<COM0A0);
+      TCCR0A |= (1<<COM0A1) | (1<<COM0A0);
       break;
 
     case SYSTEM_TIMER_OUTPUT_MODE_CLEAR:
-      TCCR0A = (1<<COM0A1);
+      TCCR0A |= (1<<COM0A1);
       break;
 
     case SYSTEM_TIMER_OUTPUT_MODE_TOGGLE:
-      TCCR0A = (1<<COM0A0);
+      TCCR0A |= (1<<COM0A0);
+      break;
+
+    default:
+      return FALSE;
+      break;
+  };
+
+  return TRUE;
+}
+
+/**
+ * Sets the timer waveform generation mode
+ *
+ * \return Nonzero if the configuration was successful, zero otherwise
+ */
+static inline uint8_t
+System_TimerSetWaveGenMode(
+    System_TimerWaveGenMode waveGenMode
+    )
+{
+  TCCR0A &= ~((1<<WGM01) | (1<<WGM00));
+  TCCR0B &= ~((1<<WGM02));
+
+  switch (waveGenMode)
+  {
+    case SYSTEM_TIMER_WAVEGEN_MODE_CTC:
+      TCCR0A |= ((1<<WGM01));
       break;
 
     default:
@@ -188,6 +230,14 @@ void
 System_RegisterCallback(
     void (*callback)(System_EventType), /**< Pointer to callback function to register */
     System_EventType  event             /**< Type of event to register the callback for */
+    );
+
+/**
+ * Gets a callback registered with the given event, if any
+ */
+System_EventCallback
+System_GetEventCallback(
+    System_EventType  event /**< Event to get callback function for */
     );
 
 /**
