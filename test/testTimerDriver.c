@@ -140,30 +140,32 @@ uint8_t System_TimerSetClockSource(
     System_TimerClockSource clockSource
     )
 {
+  TCCR0B &= ~((1<<CS02) | (1<<CS01) | (1<<CS00));
+
   switch (clockSource)
   {
     case SYSTEM_TIMER_CLKSOURCE_OFF:
-      TCCR0B = 0;
+      TCCR0B |= 0;
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_INT:
-      TCCR0B = (1<<CS00);
+      TCCR0B |= (1<<CS00);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_INT_PRE8:
-      TCCR0B = (1<<CS01);
+      TCCR0B |= (1<<CS01);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_INT_PRE64:
-      TCCR0B = (1<<CS01) | (1<<CS00);
+      TCCR0B |= (1<<CS01) | (1<<CS00);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_INT_PRE256:
-      TCCR0B = (1<<CS02);
+      TCCR0B |= (1<<CS02);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_INT_PRE1024:
-      TCCR0B = (1<<CS02) | (1<<CS00);
+      TCCR0B |= (1<<CS02) | (1<<CS00);
       break;
 
     default:
@@ -186,7 +188,7 @@ uint8_t System_TimerSetCompareOutputMode(
     System_TimerCompareOutputMode outputMode
     )
 {
-  uint8_t TCCR0A_copy = TCCR0A & ~((1<<COM0A1) | (1<<COM0A0));
+  TCCR0A &= ~((1<<COM0A1) | (1<<COM0A0));
 
   switch (outputMode)
   {
@@ -194,23 +196,21 @@ uint8_t System_TimerSetCompareOutputMode(
       break;
 
     case SYSTEM_TIMER_OUTPUT_MODE_SET:
-      TCCR0A_copy |= (1<<COM0A1) | (1<<COM0A0);
+      TCCR0A |= (1<<COM0A1) | (1<<COM0A0);
       break;
 
     case SYSTEM_TIMER_OUTPUT_MODE_CLEAR:
-      TCCR0A_copy |= (1<<COM0A1);
+      TCCR0A |= (1<<COM0A1);
       break;
 
     case SYSTEM_TIMER_OUTPUT_MODE_TOGGLE:
-      TCCR0A_copy |= (1<<COM0A0);
+      TCCR0A |= (1<<COM0A0);
       break;
 
     default:
       return FALSE;
       break;
   };
-
-  TCCR0A = TCCR0A_copy;
 
   return TRUE;
 }
@@ -220,22 +220,19 @@ System_TimerSetWaveGenMode(
     System_TimerWaveGenMode waveGenMode
     )
 {
-  uint8_t TCCR0A_copy = TCCR0A & ~((1<<WGM01) | (1<<WGM00));
-  uint8_t TCCR0B_copy = TCCR0B & ~((1<<WGM02));
+  TCCR0A &= ~((1<<WGM01) | (1<<WGM00));
+  TCCR0B &= ~((1<<WGM02));
 
   switch (waveGenMode)
   {
     case SYSTEM_TIMER_WAVEGEN_MODE_CTC:
-      TCCR0A_copy |= ((1<<WGM01));
+      TCCR0A |= ((1<<WGM01));
       break;
 
     default:
       return FALSE;
       break;
   };
-
-  TCCR0A = TCCR0A_copy;
-  TCCR0B = TCCR0B_copy;
 
   return TRUE;
 }
