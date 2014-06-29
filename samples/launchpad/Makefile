@@ -1,6 +1,5 @@
 PROJECT=launchpad_sample
 CC=msp430-gcc
-OBJCOPY=msp430-objcopy
 MCU=msp430f5529
 CORE=430x
 
@@ -12,11 +11,7 @@ INCLUDE_DIRS=-I. -I$(TIMER_ROOT)/include
 
 RESIDUE= \
 	 $(PROJECT).elf \
-	 $(PROJECT).hex \
 	 TargetSystem.o
-
-$(PROJECT).hex : $(PROJECT).elf
-	$(OBJCOPY) -O ihex $< $(PROJECT).hex
 
 $(PROJECT).elf : $(PROJECT).c TargetSystem.o
 	$(CC) -o $@ $(CFLAGS) $(INCLUDE_DIRS) $(PROJECT).c $(TIMER_SOURCE) TargetSystem.o
