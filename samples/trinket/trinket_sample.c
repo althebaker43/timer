@@ -11,10 +11,17 @@ static uint8_t events [SYSTEM_NUM_EVENTS] = {FALSE};
 
 int main()
 {
+  // Enable interrupts
+  sei();
+
+  // Initialize timer driver
   InitTimers();
 
   // Set PB0(OC0A) to output
   DDRB |= (1<<DDB0);
+
+  // Start with PORTB0 set high
+  PORTB |= (1<<PORTB0);
 
   TimerInstance* timer = CreateTimer();
   SetTimerCycleTimeMilliSec(
@@ -28,7 +35,6 @@ int main()
   StartTimer(timer);
 
   System_EventType eventIter = 0;
-  System_EventType currentEvent = SYSTEM_EVENT_INVALID;
   System_EventCallback currentEventCallback = NULL;
   
   while(1)
@@ -44,16 +50,19 @@ int main()
         continue;
       }
 
-      currentEventCallback = System_GetEventCallback(currentEvent);
+      currentEventCallback = System_GetEventCallback(eventIter);
 
       if (currentEventCallback != NULL)
       {
-        (*currentEventCallback)(currentEvent);
+        (*currentEventCallback)(eventIter);
       }
 
       events[eventIter] = FALSE;
     }
   }
+
+  // Pull PORTB0 low
+  PORTB &= ~(1<<PORTB0);
 
   return 0;
 }

@@ -116,27 +116,26 @@ static inline uint8_t System_TimerSetClockSource(
   switch (clockSource)
   {
     case SYSTEM_TIMER_CLKSOURCE_OFF:
-      TCCR0B = 0;
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_INT:
-      TCCR0B = (1<<CS00);
+      TCCR0B |= (1<<CS00);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_INT_PRE8:
-      TCCR0B = (1<<CS01);
+      TCCR0B |= (1<<CS01);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_INT_PRE64:
-      TCCR0B = (1<<CS01) | (1<<CS00);
+      TCCR0B |= (1<<CS01) | (1<<CS00);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_INT_PRE256:
-      TCCR0B = (1<<CS02);
+      TCCR0B |= (1<<CS02);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_INT_PRE1024:
-      TCCR0B = (1<<CS02) | (1<<CS00);
+      TCCR0B |= (1<<CS02) | (1<<CS00);
       break;
 
     default:

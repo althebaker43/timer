@@ -1,7 +1,7 @@
 #include "TargetSystem.h"
 
 
-static void (*callbacks [SYSTEM_NUM_EVENTS])(System_EventType);
+static void (*callbacks [SYSTEM_NUM_EVENTS])(System_EventType) = {NULL};
 
 
 void
