@@ -17,7 +17,7 @@ int main()
   // Initialize timer driver
   InitTimers();
 
-  // Set PB0(OC0A) to output
+  // Set PORTB0 (OC0A) to output
   DDRB |= (1<<DDB0);
 
   // Start with PORTB0 set high
@@ -60,9 +60,6 @@ int main()
       events[eventIter] = FALSE;
     }
   }
-
-  // Pull PORTB0 low
-  PORTB &= ~(1<<PORTB0);
 
   return 0;
 }
