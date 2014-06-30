@@ -487,7 +487,12 @@ TEST(TimerDriver, ClearTimerOnCompareMatch)
 {
   testCreateAllTimers();
 
+  SetTimerCycleTimeMilliSec(
+      timers[0],
+      500
+      );
   StartTimer(timers[0]);
+
   TEST_ASSERT_BITS(((1<<WGM01) | (1<<WGM00)), 0x02, TCCR0A);
   TEST_ASSERT_BITS(((1<<WGM02)), 0x00, TCCR0B);
 }
@@ -503,7 +508,16 @@ TEST(TimerDriver, StoppedOnDestroy)
 
 TEST(TimerDriver, NoRunningWithoutTime)
 {
-  TEST_IGNORE_MESSAGE("Detection for uninitialized timer period not yet implemented.");
+  testCreateAllTimers();
+  
+  TEST_ASSERT_FALSE(StartTimer(timers[0]));
+
+  SetTimerCycleTimeMilliSec(
+      timers[0],
+      500
+      );
+  
+  TEST_ASSERT(StartTimer(timers[0]));
 }
 
 TEST(TimerDriver, RunningAfterStart)
@@ -644,7 +658,21 @@ TEST(TimerDriver, SetCycleTimeSec)
 
 TEST(TimerDriver, CycleTimeOverflow)
 {
-  TEST_IGNORE_MESSAGE("Overflow detection for cycle times not yet implemented.");
+  testCreateAllTimers();
+
+  TEST_ASSERT(
+      SetTimerCycleTimeSec(
+        timers[0],
+        (UINT16_MAX) / 1000
+        )
+      );
+
+  TEST_ASSERT_FALSE(
+      SetTimerCycleTimeSec(
+        timers[0],
+        (((UINT16_MAX) / 1000) + 1)
+        )
+      );
 }
 
 TEST(TimerDriver, HiFreqAccuracy)

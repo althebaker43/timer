@@ -183,10 +183,17 @@ GetTimerCompareMatchesPerCycle(TimerInstance* instance)
   return instance->compareMatchesPerCycle;
 }
 
-void
+uint8_t
 StartTimer(TimerInstance* instance)
 {
-  
+  if (
+      (instance->compareMatch == 0) &&
+      (instance->compareMatchesPerCycle)
+     )
+  {
+    return FALSE;
+  }
+
   System_TimerID id = GetSystemID(instance);
   System_EventType event = System_GetTimerCallbackEvent(id);
 
@@ -200,6 +207,8 @@ StartTimer(TimerInstance* instance)
 
   System_TimerSetClockSource(instance->clockSource);
   instance->status = TIMER_STATUS_RUNNING;
+
+  return TRUE;
 }
 
 void
@@ -270,9 +279,16 @@ SetTimerCycleTimeSec(
     uint8_t         numSec
     )
 {
+  uint32_t numMilliSec = numSec * 1000;
+
+  if (numMilliSec > UINT16_MAX)
+  {
+    return FALSE;
+  }
+
   return SetTimerCycleTimeMilliSec(
       instance,
-      (numSec * 1000)
+      ((uint16_t) numMilliSec)
       );
 }
 

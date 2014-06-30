@@ -97,8 +97,10 @@ GetTimerCompareMatchesPerCycle(
 
 /**
  * Starts the given timer, if not already running
+ *
+ * \return Nonzero if the timer was started, zero otherwise
  */
-void
+uint8_t
 StartTimer(
     TimerInstance*  instance  /**< Pointer to instance of timer to start */
     );
