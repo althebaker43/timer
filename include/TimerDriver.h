@@ -4,6 +4,12 @@
 #include <stdint.h>
 
 /**
+ * \file TimerDriver.h
+ *
+ * Specification file for the timer driver
+ */
+
+/**
  * Timer context structure typedef
  */
 typedef struct TimerInstance_struct TimerInstance;
