@@ -88,6 +88,8 @@ CreateTimer()
       newTimer->numCompareMatches = 0;
       newTimer->numCycles = 0;
 
+      StopTimer(newTimer);
+
       timerInstancesInUse[timerIdx] = TRUE;
       numTimerInstances++;
       return newTimer;
