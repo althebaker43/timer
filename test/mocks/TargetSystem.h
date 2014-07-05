@@ -179,4 +179,35 @@ System_SetEvent(
 System_EventType
 System_PopEvent();
 
+// Test accessors (not for production use)
+
+System_TimerClockSource
+System_TimerGetClockSource();
+
+uint8_t
+System_TimerGetCompareValue();
+
+System_TimerCompareOutputMode
+System_TimerGetCompareOutputMode();
+
+System_TimerWaveGenMode
+System_TimerGetWaveGenMode();
+
+uint8_t
+System_GetEvent(
+    System_EventType
+    );
+
+System_EventCallback
+System_GetEventCallback(
+    System_EventType
+    );
+
+// Test manipulators (not for production use)
+
+void
+System_SetCoreClockFrequency(
+    uint32_t
+    );
+
 #endif /* TARGET_SYSTEM */
