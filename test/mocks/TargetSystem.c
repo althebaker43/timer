@@ -5,18 +5,18 @@
  *
  * \note The default is 1MHz
  */
-static uint32_t coreClockFrequency = 1000000;
+static unsigned long int coreClockFrequency = 1000000;
 
 // Mock system settings
 static System_TimerClockSource system_clockSource;
-static uint8_t system_compareValue;
+static unsigned int system_compareValue;
 static System_TimerCompareOutputMode system_outputMode;
 static System_TimerWaveGenMode system_waveGenMode;
-static uint8_t system_events [SYSTEM_NUM_EVENTS] = {FALSE};
+static unsigned int system_events [SYSTEM_NUM_EVENTS] = {FALSE};
 static void (*system_eventCallbacks [SYSTEM_NUM_EVENTS])(System_EventType); /**< Pointers to timer compare match event callback functions */
 
 
-uint32_t
+unsigned long int
 System_TimerGetSourceFrequency(
     System_TimerClockSource clockSource
     )
@@ -34,7 +34,7 @@ System_TimerGetSourceFrequency(
   };
 }
 
-uint8_t
+unsigned int
 System_TimerSetClockSource(
     System_TimerClockSource clockSource
     )
@@ -43,16 +43,16 @@ System_TimerSetClockSource(
   return TRUE;
 }
 
-uint8_t
+unsigned int
 System_TimerSetCompareMatch(
-    uint8_t compareValue
+    unsigned int compareValue
     )
 {
   system_compareValue = compareValue;
   return TRUE;
 }
 
-uint8_t
+unsigned int
 System_TimerSetCompareOutputMode(
     System_TimerCompareOutputMode outputMode
     )
@@ -61,7 +61,7 @@ System_TimerSetCompareOutputMode(
   return TRUE;
 }
 
-uint8_t
+unsigned int
 System_TimerSetWaveGenMode(
     System_TimerWaveGenMode waveGenMode
     )
@@ -82,7 +82,7 @@ System_RegisterCallback(
   }
 }
 
-uint8_t
+unsigned int
 System_EnableEvent(
     System_EventType  event
     )
@@ -91,7 +91,7 @@ System_EnableEvent(
   return TRUE;
 }
 
-uint8_t
+unsigned int
 System_DisableEvent(
     System_EventType  event
     )
@@ -122,7 +122,7 @@ System_TimerGetClockSource()
   return system_clockSource;
 }
 
-uint8_t
+unsigned int
 System_TimerGetCompareValue()
 {
   return system_compareValue;
@@ -140,7 +140,7 @@ System_TimerGetWaveGenMode()
   return system_waveGenMode;
 }
 
-uint8_t
+unsigned int
 System_GetEvent(
     System_EventType  event
     )
@@ -160,7 +160,7 @@ System_GetEventCallback(
 
 void
 System_SetCoreClockFrequency(
-    uint32_t  newFrequency
+    unsigned long int newFrequency
     )
 {
   coreClockFrequency = newFrequency;

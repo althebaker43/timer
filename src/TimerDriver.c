@@ -1,6 +1,8 @@
+#include <stdlib.h>
+#include <limits.h>
+
 #include "TimerDriver.h"
 #include "TargetSystem.h"
-#include <stdlib.h>
 
 /**
  * Minimum frequency for a millisecond counter
@@ -12,18 +14,18 @@ struct TimerInstance_struct
   System_TimerID                id;                     /**< System ID of timer */
   TimerStatus                   status;                 /**< Current status of the timer */
   System_TimerClockSource       clockSource;            /**< Clock source currently used for this timer */
-  uint8_t                       compareMatch;           /**< Value to trigger a compare match on */
-  uint8_t                       compareMatchesPerCycle; /**< Number of compare matches per timer cycle */
+  unsigned int                       compareMatch;           /**< Value to trigger a compare match on */
+  unsigned int                       compareMatchesPerCycle; /**< Number of compare matches per timer cycle */
   System_TimerCompareOutputMode compareOutputMode;      /**< Compare output mode */
-  uint8_t                       numCompareMatches;      /**< Number of compare matches counted in current cycle */
-  uint8_t                       numCycles;              /**< Number of cycles counted */
+  unsigned int                       numCompareMatches;      /**< Number of compare matches counted in current cycle */
+  unsigned int                       numCycles;              /**< Number of cycles counted */
   TimerCycleHandler             cycleHandler;           /**< Handler function to call for each cycle completion */
 };
 
-static uint8_t timersInitialized = FALSE;
+static unsigned int timersInitialized = FALSE;
 static TimerInstance timerInstances [SYSTEM_NUM_TIMERS];
-static uint8_t timerInstancesInUse [SYSTEM_NUM_TIMERS];
-static uint8_t numTimerInstances = 0;
+static unsigned int timerInstancesInUse [SYSTEM_NUM_TIMERS];
+static unsigned int numTimerInstances = 0;
 
 /**
  * Callback function for timer compare match events
@@ -43,7 +45,7 @@ InitTimers()
     return;
   }
 
-  uint8_t timerIdx;
+  unsigned int timerIdx;
   for(
       timerIdx = 0;
       timerIdx < SYSTEM_NUM_TIMERS;
@@ -68,7 +70,7 @@ CreateTimer()
     return NULL;
   }
 
-  uint8_t timerIdx;
+  unsigned int timerIdx;
   for(
       timerIdx = 0;
       timerIdx < SYSTEM_NUM_TIMERS;
@@ -112,7 +114,7 @@ DestroyTimer(TimerInstance** instance)
 
   StopTimer(*instance);
 
-  uint8_t timerIdx;
+  unsigned int timerIdx;
   for(
       timerIdx = 0;
       timerIdx < SYSTEM_NUM_TIMERS;
@@ -132,7 +134,7 @@ DestroyTimer(TimerInstance** instance)
 void
 DestroyAllTimers()
 {
-  uint8_t timerIdx;
+  unsigned int timerIdx;
   for(
       timerIdx = 0;
       timerIdx < SYSTEM_NUM_TIMERS;
@@ -148,7 +150,7 @@ DestroyAllTimers()
 TimerStatus
 GetTimerStatus(TimerInstance* instance)
 {
-  uint8_t timerIdx;
+  unsigned int timerIdx;
   for(
       timerIdx = 0;
       timerIdx < SYSTEM_NUM_TIMERS;
@@ -167,25 +169,25 @@ GetTimerStatus(TimerInstance* instance)
   return TIMER_STATUS_INVALID;
 }
 
-uint8_t
+unsigned int
 GetTimerClockSource(TimerInstance* instance)
 {
   return instance->clockSource;
 }
 
-uint8_t
+unsigned int
 GetTimerCompareMatch(TimerInstance* instance)
 {
   return instance->compareMatch;
 }
 
-uint8_t
+unsigned int
 GetTimerCompareMatchesPerCycle(TimerInstance* instance)
 {
   return instance->compareMatchesPerCycle;
 }
 
-uint8_t
+unsigned int
 StartTimer(TimerInstance* instance)
 {
   if (
@@ -224,10 +226,10 @@ StopTimer(TimerInstance* instance)
   System_DisableEvent(event);
 }
 
-uint8_t
+unsigned int
 SetTimerCycleTimeMilliSec(
-    TimerInstance*  instance,
-    uint16_t        numMilliSec
+    TimerInstance*    instance,
+    unsigned int      numMilliSec
     )
 {
   if (numMilliSec == 0)
@@ -235,18 +237,18 @@ SetTimerCycleTimeMilliSec(
     return FALSE;
   }
 
-  uint32_t idealFrequency = 0;
-  uint16_t numMilliSecPerSubCycle = 0;
-  uint32_t clockSourceFrequency = 0;
+  unsigned long int idealFrequency = 0;
+  unsigned int numMilliSecPerSubCycle = 0;
+  unsigned long int clockSourceFrequency = 0;
   instance->compareMatchesPerCycle = 0;
 
   for (;;)
   {
     instance->compareMatchesPerCycle++;
     numMilliSecPerSubCycle = numMilliSec / instance->compareMatchesPerCycle;
-    idealFrequency = (uint32_t)(MAX_IDEAL_FREQ_MS_COUNTER / numMilliSecPerSubCycle);
+    idealFrequency = (unsigned long int)(MAX_IDEAL_FREQ_MS_COUNTER / numMilliSecPerSubCycle);
 
-    uint8_t clockSourceIter;
+    unsigned int clockSourceIter;
     for(
         clockSourceIter = 0;
         clockSourceIter < NUM_TIMER_CLKSOURCES;
@@ -262,7 +264,7 @@ SetTimerCycleTimeMilliSec(
       if (idealFrequency >= clockSourceFrequency)
       {
         instance->clockSource = clockSourceIter;
-        instance->compareMatch = (uint8_t)((numMilliSecPerSubCycle * clockSourceFrequency) / 1000);
+        instance->compareMatch = (unsigned int)((numMilliSecPerSubCycle * clockSourceFrequency) / 1000);
 
         System_TimerSetClockSource(instance->clockSource);
         System_TimerSetCompareMatch(instance->compareMatch);
@@ -275,39 +277,39 @@ SetTimerCycleTimeMilliSec(
   return FALSE;
 }
 
-uint8_t
+unsigned int
 SetTimerCycleTimeSec(
-    TimerInstance*  instance,
-    uint8_t         numSec
+    TimerInstance*      instance,
+    unsigned short int  numSec
     )
 {
-  uint32_t numMilliSec = numSec * 1000;
+  unsigned int MAX_NUM_SEC = UINT_MAX / 1000;
 
-  if (numMilliSec > UINT16_MAX)
+  if (numSec > MAX_NUM_SEC)
   {
     return FALSE;
   }
 
   return SetTimerCycleTimeMilliSec(
       instance,
-      ((uint16_t) numMilliSec)
+      ((unsigned long int) numSec * 1000)
       );
 }
 
-uint8_t
+unsigned int
 GetTimerCompareOutputMode(
     TimerInstance*  instance,
-    uint8_t         output
+    unsigned int         output
     )
 {
   return instance->compareOutputMode;
 }
 
-uint8_t
+unsigned int
 SetTimerCompareOutputMode(
     TimerInstance* instance,
-    uint8_t        output,
-    uint8_t        mode
+    unsigned int        output,
+    unsigned int        mode
     )
 {
   if (System_TimerSetCompareOutputMode(mode) == TRUE)
@@ -321,7 +323,7 @@ SetTimerCompareOutputMode(
   }
 }
 
-uint8_t
+unsigned int
 GetNumTimerCompareMatches(
     TimerInstance*  instance
     )
@@ -329,7 +331,7 @@ GetNumTimerCompareMatches(
   return instance->numCompareMatches;
 }
 
-uint8_t
+unsigned int
 GetNumTimerCycles(
     TimerInstance*  instance
     )
@@ -342,7 +344,7 @@ TimerCompareMatchCallback(
     System_EventType  event
     )
 {
-  uint8_t timerIdx;
+  unsigned int timerIdx;
   for(
       timerIdx = 0;
       timerIdx < SYSTEM_NUM_TIMERS;
@@ -396,7 +398,7 @@ GetTimerCycleHandler(
   return instance->cycleHandler;
 }
 
-uint8_t
+unsigned int
 SetTimerCycleHandler(
     TimerInstance*    instance,
     TimerCycleHandler handler

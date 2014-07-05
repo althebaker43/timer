@@ -1,8 +1,6 @@
 #ifndef TARGET_SYSTEM
 #define TARGET_SYSTEM
 
-#include <stdint.h>
-
 #define TRUE 1
 #define FALSE 0
 
@@ -83,7 +81,8 @@ typedef void (*System_EventCallback)(System_EventType);
  *
  * \return Frequency of given clock source, or zero if invalid
  */
-uint32_t System_TimerGetSourceFrequency(
+unsigned long int
+System_TimerGetSourceFrequency(
     System_TimerClockSource
     );
 
@@ -92,7 +91,8 @@ uint32_t System_TimerGetSourceFrequency(
  *
  * \return Nonzero if configuration was successful, zero otherwise
  */
-uint8_t System_TimerSetClockSource(
+unsigned int
+System_TimerSetClockSource(
     System_TimerClockSource
     );
 
@@ -101,8 +101,9 @@ uint8_t System_TimerSetClockSource(
  *
  * \return Nonzero if configuration was successful, zero otherwise
  */
-uint8_t System_TimerSetCompareMatch(
-    uint8_t
+unsigned int
+System_TimerSetCompareMatch(
+    unsigned int
     );
 
 /**
@@ -110,7 +111,7 @@ uint8_t System_TimerSetCompareMatch(
  *
  * \return Nonzero if the configuration was successful, zero otherwise
  */
-uint8_t System_TimerSetCompareOutputMode(
+unsigned int System_TimerSetCompareOutputMode(
     System_TimerCompareOutputMode
     );
 
@@ -119,7 +120,7 @@ uint8_t System_TimerSetCompareOutputMode(
  *
  * \return Nonzero if the configuration was successful, zero otherwise
  */
-uint8_t
+unsigned int
 System_TimerSetWaveGenMode(
     System_TimerWaveGenMode
     );
@@ -144,7 +145,7 @@ System_GetCallback(
 /**
  * Enables interrupts for a given event
  */
-uint8_t
+unsigned int
 System_EnableEvent(
     System_EventType  event /**< Type of event to enable interrupts for */
     );
@@ -152,7 +153,7 @@ System_EnableEvent(
 /**
  * Disables interrupts for a given event
  */
-uint8_t
+unsigned int
 System_DisableEvent(
     System_EventType  event /** Type of event to disable interrupts for */
     );
@@ -184,7 +185,7 @@ System_PopEvent();
 System_TimerClockSource
 System_TimerGetClockSource();
 
-uint8_t
+unsigned int
 System_TimerGetCompareValue();
 
 System_TimerCompareOutputMode
@@ -193,7 +194,7 @@ System_TimerGetCompareOutputMode();
 System_TimerWaveGenMode
 System_TimerGetWaveGenMode();
 
-uint8_t
+unsigned int
 System_GetEvent(
     System_EventType
     );
@@ -207,7 +208,7 @@ System_GetEventCallback(
 
 void
 System_SetCoreClockFrequency(
-    uint32_t
+    unsigned long int
     );
 
 #endif /* TARGET_SYSTEM */

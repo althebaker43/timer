@@ -1,8 +1,6 @@
 #ifndef TIMER_DRIVER
 #define TIMER_DRIVER
 
-#include <stdint.h>
-
 /**
  * \file TimerDriver.h
  *
@@ -74,7 +72,7 @@ GetTimerStatus(
 /**
  * Provides the given timer's system clock source enumerator
  */
-uint8_t
+unsigned int
 GetTimerClockSource(
     TimerInstance*  instance  /**< Pointer to instance of timer to get source of */
     );
@@ -82,7 +80,7 @@ GetTimerClockSource(
 /**
  * Provides the given timer's compare match value
  */
-uint8_t
+unsigned int
 GetTimerCompareMatch(
     TimerInstance*  instance  /**< Pointer to instance of timer to get match value of */
     );
@@ -96,7 +94,7 @@ GetTimerCompareMatch(
  *
  * \return Number of compare matches per cycle, or -1 if invalid instance is given
  */
-uint8_t
+unsigned int
 GetTimerCompareMatchesPerCycle(
     TimerInstance*  instance  /**< Pointer to instance of timer get matches-per-cycle of */
     );
@@ -106,7 +104,7 @@ GetTimerCompareMatchesPerCycle(
  *
  * \return Nonzero if the timer was started, zero otherwise
  */
-uint8_t
+unsigned int
 StartTimer(
     TimerInstance*  instance  /**< Pointer to instance of timer to start */
     );
@@ -124,10 +122,10 @@ StopTimer(
  *
  * \return Nonzero if the timer cycle time was set, zero otherwise
  */
-uint8_t
+unsigned int
 SetTimerCycleTimeMilliSec(
-    TimerInstance*  instance,   /**< Pointer to instance of timer to set period of */
-    uint16_t        numMilliSec /**< Number of milliseconds to set period to */
+    TimerInstance*    instance,   /**< Pointer to instance of timer to set period of */
+    unsigned int      numMilliSec /**< Number of milliseconds to set period to */
     );
 
 /**
@@ -135,10 +133,10 @@ SetTimerCycleTimeMilliSec(
  *
  * \return Nonzero if the timer cycle time was set, zero otherwise
  */
-uint8_t
+unsigned int
 SetTimerCycleTimeSec(
-    TimerInstance*  instance, /**< Pointer to instance of timer to set period of */
-    uint8_t         numSec    /**< Number of seconds to set period to */
+    TimerInstance*      instance, /**< Pointer to instance of timer to set period of */
+    unsigned short int  numSec    /**< Number of seconds to set period to */
     );
 
 /**
@@ -146,10 +144,10 @@ SetTimerCycleTimeSec(
  *
  * \return Identifier of compare output mode of given timer and output
  */
-uint8_t
+unsigned int
 GetTimerCompareOutputMode(
     TimerInstance*  instance, /**< Pointer to instance of timer to get mode of */
-    uint8_t         output    /**< Identifier of output to get mode of */
+    unsigned int         output    /**< Identifier of output to get mode of */
     );
 
 /**
@@ -157,11 +155,11 @@ GetTimerCompareOutputMode(
  *
  * \return Nonzero if the timer output mode was set, zero otherwise
  */
-uint8_t
+unsigned int
 SetTimerCompareOutputMode(
     TimerInstance*  instance, /**< Pointer to instance of timer to set mode of */
-    uint8_t         output,   /**< Identifier of output to set mode of */
-    uint8_t         mode      /**< Identifier of compare output mode to set to */
+    unsigned int         output,   /**< Identifier of output to set mode of */
+    unsigned int         mode      /**< Identifier of compare output mode to set to */
     );
 
 /**
@@ -169,7 +167,7 @@ SetTimerCompareOutputMode(
  *
  * \note This gets reset to zero after every cycle
  */
-uint8_t
+unsigned int
 GetNumTimerCompareMatches(
     TimerInstance*  instance  /**< Pointer to instance of timer to get number of compare matches from */
     );
@@ -177,7 +175,7 @@ GetNumTimerCompareMatches(
 /**
  * Provides the number of cycles counted so far
  */
-uint8_t
+unsigned int
 GetNumTimerCycles(
     TimerInstance*  instance  /**< Pointer to instance of timer to get number of cycles from */
     );
@@ -193,7 +191,7 @@ GetTimerCycleHandler(
 /**
  * Sets the given timer's cycle completion handler
  */
-uint8_t
+unsigned int
 SetTimerCycleHandler(
     TimerInstance*    instance, /**< Pointer to instance of timer to set cycle handler for */
     TimerCycleHandler handler   /**< Handler call on each cycle completion */
