@@ -2,6 +2,8 @@
 *.swp
 *.o
 *.a
+*.elf
+*.hex
 tags
 TimerDriver_tests
 objs/
