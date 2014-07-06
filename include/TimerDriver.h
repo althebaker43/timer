@@ -139,12 +139,16 @@ SetTimerCycleTimeMilliSec(
 /**
  * Sets the timer cycle time in seconds
  *
+ * This is merely a wrapper around SetTimerCycleTimeMilliSec() that checks for
+ * overflow when converting seconds to milliseconds. If overflow will occur,
+ * the cycle time will not be set and the function will return zero.
+ *
  * \return Nonzero if the timer cycle time was set, zero otherwise
  */
 unsigned int
 SetTimerCycleTimeSec(
     TimerInstance*      instance, /**< Pointer to instance of timer to set period of */
-    unsigned short int  numSec    /**< Number of seconds to set period to */
+    unsigned int        numSec    /**< Number of seconds to set period to */
     );
 
 /**

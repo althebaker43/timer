@@ -289,7 +289,7 @@ SetTimerCycleTimeMilliSec(
 unsigned int
 SetTimerCycleTimeSec(
     TimerInstance*      instance,
-    unsigned short int  numSec
+    unsigned int        numSec
     )
 {
   unsigned int MAX_NUM_SEC = UINT_MAX / 1000;

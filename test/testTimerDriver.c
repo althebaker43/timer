@@ -367,26 +367,19 @@ TEST(TimerDriver, CycleTimeOverflow)
 {
   testCreateAllTimers();
 
-  if ((USHRT_MAX * 1000) > UINT_MAX)
-  {
-    TEST_ASSERT(
-        SetTimerCycleTimeSec(
-          timers[0],
-          (unsigned short int)((UINT_MAX) / 1000)
-          )
-        );
+  TEST_ASSERT(
+      SetTimerCycleTimeSec(
+        timers[0],
+        (unsigned int)((UINT_MAX) / 1000)
+        )
+      );
 
-    TEST_ASSERT_FALSE(
-        SetTimerCycleTimeSec(
-          timers[0],
-          (unsigned short int)(((UINT_MAX) / 1000) + 1)
-          )
-        );
-  }
-  else
-  {
-    TEST_IGNORE_MESSAGE("Unable to test overflow detection with current data type sizes.");
-  }
+  TEST_ASSERT_FALSE(
+      SetTimerCycleTimeSec(
+        timers[0],
+        (unsigned int)(((UINT_MAX) / 1000) + 1)
+        )
+      );
 }
 
 TEST(TimerDriver, HiFreqAccuracy)
