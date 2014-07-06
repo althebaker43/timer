@@ -63,3 +63,6 @@ samples : $(SAMPLES)
 .PHONY : trinket_samples
 $(SAMPLES) :
 	$(MAKE) -C $(SAMPLE_ROOT)/$@
+
+tags : $(SRC_DIRS)/$(COMPONENT_NAME).c $(MOCKS_SRC_DIRS)/TargetSystem.c
+	ctags $^

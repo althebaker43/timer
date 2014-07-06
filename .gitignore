@@ -2,6 +2,7 @@
 *.swp
 *.o
 *.a
+tags
 TimerDriver_tests
 objs/
 lib/
