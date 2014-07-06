@@ -85,7 +85,8 @@ typedef void (*System_EventCallback)(System_EventType);
  *
  * \return Frequency of given clock source, or zero if invalid
  */
-static inline uint32_t System_TimerGetSourceFrequency(
+static inline unsigned long int
+System_TimerGetSourceFrequency(
     System_TimerClockSource clockSource
     )
 {
@@ -107,7 +108,9 @@ static inline uint32_t System_TimerGetSourceFrequency(
  *
  * \return Nonzero if configuration was successful, zero otherwise
  */
-static inline uint8_t System_TimerSetClockSource(
+static inline unsigned int
+System_TimerSetClockSource(
+    System_TimerID          timer,
     System_TimerClockSource clockSource
     )
 {
@@ -151,8 +154,10 @@ static inline uint8_t System_TimerSetClockSource(
  *
  * \return Nonzero if configuration was successful, zero otherwise
  */
-static inline uint8_t System_TimerSetCompareMatch(
-    uint8_t compareValue
+static inline unsigned int
+System_TimerSetCompareMatch(
+    System_TimerID  timer,
+    unsigned int    compareValue
     )
 {
   OCR0A = compareValue;
@@ -164,7 +169,9 @@ static inline uint8_t System_TimerSetCompareMatch(
  *
  * \return Nonzero if the configuration was successful, zero otherwise
  */
-static inline uint8_t System_TimerSetCompareOutputMode(
+static inline unsigned int
+System_TimerSetCompareOutputMode(
+    System_TimerID                timer,
     System_TimerCompareOutputMode outputMode
     )
 {
@@ -200,8 +207,9 @@ static inline uint8_t System_TimerSetCompareOutputMode(
  *
  * \return Nonzero if the configuration was successful, zero otherwise
  */
-static inline uint8_t
+static inline unsigned int
 System_TimerSetWaveGenMode(
+    System_TimerID          timer,
     System_TimerWaveGenMode waveGenMode
     )
 {
@@ -227,8 +235,8 @@ System_TimerSetWaveGenMode(
  */
 void
 System_RegisterCallback(
-    void (*callback)(System_EventType), /**< Pointer to callback function to register */
-    System_EventType  event             /**< Type of event to register the callback for */
+    System_EventCallback  callback, /**< Pointer to callback function to register */
+    System_EventType      event     /**< Type of event to register the callback for */
     );
 
 /**
@@ -242,7 +250,7 @@ System_GetEventCallback(
 /**
  * Enables interrupts for a given event
  */
-static inline uint8_t
+static inline unsigned int
 System_EnableEvent(
     System_EventType  event /**< Type of event to enable interrupts for */
     )
@@ -262,7 +270,7 @@ System_EnableEvent(
 /**
  * Disables interrupts for a given event
  */
-static inline uint8_t
+static inline unsigned int
 System_DisableEvent(
     System_EventType  event /** Type of event to disable interrupts for */
     )
@@ -284,10 +292,10 @@ System_DisableEvent(
  */
 static inline System_EventType
 System_GetTimerCallbackEvent(
-    System_TimerID  timerID
+    System_TimerID  timer
     )
 {
-  switch (timerID)
+  switch (timer)
   {
     case SYSTEM_TIMER0: return SYSTEM_EVENT_TIMER0_COMPAREMATCH; break;
     default: return SYSTEM_EVENT_INVALID; break;
