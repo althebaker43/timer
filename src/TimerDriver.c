@@ -14,11 +14,11 @@ struct TimerInstance_struct
   System_TimerID                id;                     /**< System ID of timer */
   TimerStatus                   status;                 /**< Current status of the timer */
   System_TimerClockSource       clockSource;            /**< Clock source currently used for this timer */
-  unsigned int                       compareMatch;           /**< Value to trigger a compare match on */
-  unsigned int                       compareMatchesPerCycle; /**< Number of compare matches per timer cycle */
+  unsigned int                  compareMatch;           /**< Value to trigger a compare match on */
+  unsigned int                  compareMatchesPerCycle; /**< Number of compare matches per timer cycle */
   System_TimerCompareOutputMode compareOutputMode;      /**< Compare output mode */
-  unsigned int                       numCompareMatches;      /**< Number of compare matches counted in current cycle */
-  unsigned int                       numCycles;              /**< Number of cycles counted */
+  unsigned int                  numCompareMatches;      /**< Number of compare matches counted in current cycle */
+  unsigned int                  numCycles;              /**< Number of cycles counted */
   TimerCycleHandler             cycleHandler;           /**< Handler function to call for each cycle completion */
 };
 
@@ -31,11 +31,6 @@ static unsigned int numTimerInstances = 0;
  * Callback function for timer compare match events
  */
 static void TimerCompareMatchCallback();
-
-/**
- * Function for getting the timer's system ID
- */
-static System_TimerID GetSystemID(TimerInstance*);
 
 void
 InitTimers()
@@ -91,6 +86,13 @@ CreateTimer()
       newTimer->numCycles = 0;
 
       StopTimer(newTimer);
+
+      System_EventType compareMatchEvent = System_GetTimerCallbackEvent(newTimer->id);
+      System_DisableEvent(compareMatchEvent);
+      System_RegisterCallback(
+          NULL,
+          compareMatchEvent
+          );
 
       timerInstancesInUse[timerIdx] = TRUE;
       numTimerInstances++;
@@ -198,8 +200,7 @@ StartTimer(TimerInstance* instance)
     return FALSE;
   }
 
-  System_TimerID id = GetSystemID(instance);
-  System_EventType event = System_GetTimerCallbackEvent(id);
+  System_EventType event = System_GetTimerCallbackEvent(instance->id);
 
   System_RegisterCallback(
       TimerCompareMatchCallback,
@@ -207,9 +208,12 @@ StartTimer(TimerInstance* instance)
       );
   System_EnableEvent(event);
 
-  System_TimerSetWaveGenMode(SYSTEM_TIMER_WAVEGEN_MODE_CTC);
+  System_TimerSetWaveGenMode(instance->id, SYSTEM_TIMER_WAVEGEN_MODE_CTC);
 
-  System_TimerSetClockSource(instance->clockSource);
+  System_TimerSetClockSource(
+      instance->id,
+      instance->clockSource
+      );
   instance->status = TIMER_STATUS_RUNNING;
 
   return TRUE;
@@ -219,10 +223,9 @@ void
 StopTimer(TimerInstance* instance)
 {
   instance->status = TIMER_STATUS_STOPPED;
-  System_TimerSetClockSource(SYSTEM_TIMER_CLKSOURCE_OFF);
+  System_TimerSetClockSource(instance->id, SYSTEM_TIMER_CLKSOURCE_OFF);
 
-  System_TimerID id = GetSystemID(instance);
-  System_EventType event = System_GetTimerCallbackEvent(id);
+  System_EventType event = System_GetTimerCallbackEvent(instance->id);
   System_DisableEvent(event);
 }
 
@@ -266,8 +269,14 @@ SetTimerCycleTimeMilliSec(
         instance->clockSource = clockSourceIter;
         instance->compareMatch = (unsigned int)((numMilliSecPerSubCycle * clockSourceFrequency) / 1000);
 
-        System_TimerSetClockSource(instance->clockSource);
-        System_TimerSetCompareMatch(instance->compareMatch);
+        System_TimerSetClockSource(
+            instance->id,
+            instance->clockSource
+            );
+        System_TimerSetCompareMatch(
+            instance->id,
+            instance->compareMatch
+            );
 
         return TRUE;
       }
@@ -299,7 +308,7 @@ SetTimerCycleTimeSec(
 unsigned int
 GetTimerCompareOutputMode(
     TimerInstance*  instance,
-    unsigned int         output
+    unsigned int    output
     )
 {
   return instance->compareOutputMode;
@@ -308,11 +317,16 @@ GetTimerCompareOutputMode(
 unsigned int
 SetTimerCompareOutputMode(
     TimerInstance* instance,
-    unsigned int        output,
-    unsigned int        mode
+    unsigned int   output,
+    unsigned int   mode
     )
 {
-  if (System_TimerSetCompareOutputMode(mode) == TRUE)
+  unsigned int systemRetVal = System_TimerSetCompareOutputMode(
+      instance->id,
+      mode
+      );
+  
+  if (systemRetVal == TRUE)
   {
     instance->compareOutputMode = mode;
     return TRUE;
@@ -339,7 +353,7 @@ GetNumTimerCycles(
   return instance->numCycles;
 }
 
-static void
+void
 TimerCompareMatchCallback(
     System_EventType  event
     )
@@ -351,7 +365,7 @@ TimerCompareMatchCallback(
       timerIdx++
      )
   {
-    if (System_GetTimerCallbackEvent(GetSystemID(&timerInstances[timerIdx])) == event)
+    if (System_GetTimerCallbackEvent(timerInstances[timerIdx].id) == event)
     {
       break;
     }
@@ -383,7 +397,7 @@ TimerCompareMatchCallback(
 }
 
 System_TimerID
-GetSystemID(
+GetTimerSystemID(
     TimerInstance*  instance
     )
 {

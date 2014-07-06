@@ -60,6 +60,14 @@ void
 DestroyAllTimers();
 
 /**
+ * Function for getting the timer's system ID
+ */
+unsigned int
+GetTimerSystemID(
+    TimerInstance*
+    );
+
+/**
  * Provides the given timer's status
  *
  * \return Status of the given timer

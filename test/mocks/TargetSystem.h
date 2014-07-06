@@ -93,6 +93,7 @@ System_TimerGetSourceFrequency(
  */
 unsigned int
 System_TimerSetClockSource(
+    System_TimerID,
     System_TimerClockSource
     );
 
@@ -103,6 +104,7 @@ System_TimerSetClockSource(
  */
 unsigned int
 System_TimerSetCompareMatch(
+    System_TimerID,
     unsigned int
     );
 
@@ -112,6 +114,7 @@ System_TimerSetCompareMatch(
  * \return Nonzero if the configuration was successful, zero otherwise
  */
 unsigned int System_TimerSetCompareOutputMode(
+    System_TimerID,
     System_TimerCompareOutputMode
     );
 
@@ -122,6 +125,7 @@ unsigned int System_TimerSetCompareOutputMode(
  */
 unsigned int
 System_TimerSetWaveGenMode(
+    System_TimerID,
     System_TimerWaveGenMode
     );
 
@@ -138,7 +142,7 @@ System_RegisterCallback(
  * Gets a callback registered with the given event, if any
  */
 System_EventCallback
-System_GetCallback(
+System_GetEventCallback(
     System_EventType  event /**< Event to get callback function for */
     );
 
@@ -183,16 +187,24 @@ System_PopEvent();
 // Test accessors (not for production use)
 
 System_TimerClockSource
-System_TimerGetClockSource();
+System_TimerGetClockSource(
+    System_TimerID
+    );
 
 unsigned int
-System_TimerGetCompareValue();
+System_TimerGetCompareValue(
+    System_TimerID
+    );
 
 System_TimerCompareOutputMode
-System_TimerGetCompareOutputMode();
+System_TimerGetCompareOutputMode(
+    System_TimerID
+    );
 
 System_TimerWaveGenMode
-System_TimerGetWaveGenMode();
+System_TimerGetWaveGenMode(
+    System_TimerID
+    );
 
 unsigned int
 System_GetEvent(

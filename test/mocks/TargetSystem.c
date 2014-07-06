@@ -8,12 +8,13 @@
 static unsigned long int coreClockFrequency = 1000000;
 
 // Mock system settings
-static System_TimerClockSource system_clockSource;
-static unsigned int system_compareValue;
-static System_TimerCompareOutputMode system_outputMode;
-static System_TimerWaveGenMode system_waveGenMode;
+static System_TimerClockSource system_clockSources [SYSTEM_NUM_TIMERS];
+static unsigned int system_compareValues [SYSTEM_NUM_TIMERS];
+static System_TimerCompareOutputMode system_outputModes [SYSTEM_NUM_TIMERS];
+static System_TimerWaveGenMode system_waveGenModes [SYSTEM_NUM_TIMERS];
+
 static unsigned int system_events [SYSTEM_NUM_EVENTS] = {FALSE};
-static void (*system_eventCallbacks [SYSTEM_NUM_EVENTS])(System_EventType); /**< Pointers to timer compare match event callback functions */
+static System_EventCallback system_eventCallbacks [SYSTEM_NUM_EVENTS]; /**< Pointers to timer compare match event callback functions */
 
 
 unsigned long int
@@ -36,37 +37,41 @@ System_TimerGetSourceFrequency(
 
 unsigned int
 System_TimerSetClockSource(
+    System_TimerID          timer,
     System_TimerClockSource clockSource
     )
 {
-  system_clockSource = clockSource;
+  system_clockSources[timer] = clockSource;
   return TRUE;
 }
 
 unsigned int
 System_TimerSetCompareMatch(
-    unsigned int compareValue
+    System_TimerID  timer,
+    unsigned int    compareValue
     )
 {
-  system_compareValue = compareValue;
+  system_compareValues[timer] = compareValue;
   return TRUE;
 }
 
 unsigned int
 System_TimerSetCompareOutputMode(
+    System_TimerID                timer,
     System_TimerCompareOutputMode outputMode
     )
 {
-  system_outputMode = outputMode;
+  system_outputModes[timer] = outputMode;
   return TRUE;
 }
 
 unsigned int
 System_TimerSetWaveGenMode(
+    System_TimerID          timer,
     System_TimerWaveGenMode waveGenMode
     )
 {
-  system_waveGenMode = waveGenMode;
+  system_waveGenModes[timer] = waveGenMode;
   return TRUE;
 }
 
@@ -117,27 +122,35 @@ System_GetTimerCallbackEvent(
 // Test accessors (not for production use)
 
 System_TimerClockSource
-System_TimerGetClockSource()
+System_TimerGetClockSource(
+    System_TimerID  timer
+    )
 {
-  return system_clockSource;
+  return system_clockSources[timer];
 }
 
 unsigned int
-System_TimerGetCompareValue()
+System_TimerGetCompareValue(
+    System_TimerID  timer
+    )
 {
-  return system_compareValue;
+  return system_compareValues[timer];
 }
 
 System_TimerCompareOutputMode
-System_TimerGetCompareOutputMode()
+System_TimerGetCompareOutputMode(
+    System_TimerID  timer
+    )
 {
-  return system_outputMode;
+  return system_outputModes[timer];
 }
 
 System_TimerWaveGenMode
-System_TimerGetWaveGenMode()
+System_TimerGetWaveGenMode(
+    System_TimerID  timer
+    )
 {
-  return system_waveGenMode;
+  return system_waveGenModes[timer];
 }
 
 unsigned int
