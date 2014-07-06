@@ -5,6 +5,15 @@
 #define FALSE 0
 
 /**
+ * \file TargetSystem.h
+ *
+ * Header file for a mock hardware abstraction layer
+ *
+ * All system functions required by the timer driver for correct operation are
+ * documented in this file.
+ */
+
+/**
  * Enumeration of all timer modules in system
  */
 typedef enum System_TimerID_enum
