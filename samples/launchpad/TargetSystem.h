@@ -8,8 +8,7 @@
 #define TRUE 1
 #define FALSE 0
 
-#define SYSTEM_CORE_CLOCK_FREQUENCY 8000000
-#define SYSTEM_AUX_CLOCK_FREQUENCY 7812 // Core clock divided by 1024
+#define SYSTEM_SUB_CLOCK_FREQUENCY 8000000 // Subsystem clock
 
 /**
  * Enumeration of all timer modules in system
@@ -27,10 +26,10 @@ typedef enum System_TimerID_enum
  */
 typedef enum System_TimerClockSource_enum
 {
-  SYSTEM_TIMER_CLKSOURCE_AUX,
-  SYSTEM_TIMER_CLKSOURCE_AUX_PRE2,
-  SYSTEM_TIMER_CLKSOURCE_AUX_PRE4,
-  SYSTEM_TIMER_CLKSOURCE_AUX_PRE8,
+  SYSTEM_TIMER_CLKSOURCE_SUB,
+  SYSTEM_TIMER_CLKSOURCE_SUB_PRE2,
+  SYSTEM_TIMER_CLKSOURCE_SUB_PRE4,
+  SYSTEM_TIMER_CLKSOURCE_SUB_PRE8,
   SYSTEM_TIMER_CLKSOURCE_OFF,         // Disconnected from clock
   NUM_TIMER_CLKSOURCES,
   SYSTEM_TIMER_CLKSOURCE_INVALID
@@ -83,16 +82,17 @@ typedef void (*System_EventCallback)(System_EventType);
  *
  * \return Frequency of given clock source, or zero if invalid
  */
-static inline uint32_t System_TimerGetSourceFrequency(
+static inline unsigned long int
+System_TimerGetSourceFrequency(
     System_TimerClockSource clockSource
     )
 {
   switch (clockSource)
   {
-    case SYSTEM_TIMER_CLKSOURCE_AUX:      return (SYSTEM_AUX_CLOCK_FREQUENCY); break; 
-    case SYSTEM_TIMER_CLKSOURCE_AUX_PRE2: return (SYSTEM_AUX_CLOCK_FREQUENCY / 2); break;
-    case SYSTEM_TIMER_CLKSOURCE_AUX_PRE4: return (SYSTEM_AUX_CLOCK_FREQUENCY / 4); break;
-    case SYSTEM_TIMER_CLKSOURCE_AUX_PRE8: return (SYSTEM_AUX_CLOCK_FREQUENCY / 8); break;
+    case SYSTEM_TIMER_CLKSOURCE_SUB:      return (SYSTEM_SUB_CLOCK_FREQUENCY); break; 
+    case SYSTEM_TIMER_CLKSOURCE_SUB_PRE2: return (SYSTEM_SUB_CLOCK_FREQUENCY / 2); break;
+    case SYSTEM_TIMER_CLKSOURCE_SUB_PRE4: return (SYSTEM_SUB_CLOCK_FREQUENCY / 4); break;
+    case SYSTEM_TIMER_CLKSOURCE_SUB_PRE8: return (SYSTEM_SUB_CLOCK_FREQUENCY / 8); break;
     default:
       return 0;
       break;
@@ -104,28 +104,33 @@ static inline uint32_t System_TimerGetSourceFrequency(
  *
  * \return Nonzero if configuration was successful, zero otherwise
  */
-static inline uint8_t System_TimerSetClockSource(
+static inline unsigned int
+System_TimerSetClockSource(
+    System_TimerID          timer,
     System_TimerClockSource clockSource
     )
 {
-  TA0CTL &= ~((MC1) | (MC0) | (ID1) | (ID0));
+  // Stop timer when configuring clock source
+  unsigned int TA0CTL_MC_copy = TA0CTL & ((MC1) | (MC0));
+  TA0CTL &= ~((MC1) | (MC0));
+
+  TA0CTL &= ~((ID1) | (ID0));
 
   switch (clockSource)
   {
-    case SYSTEM_TIMER_CLKSOURCE_AUX:
-      TA0CTL |= (MC0);
+    case SYSTEM_TIMER_CLKSOURCE_SUB:
       break;
 
-    case SYSTEM_TIMER_CLKSOURCE_AUX_PRE2:
-      TA0CTL |= (MC0) | (ID0);
+    case SYSTEM_TIMER_CLKSOURCE_SUB_PRE2:
+      TA0CTL |= (ID0);
       break;
 
-    case SYSTEM_TIMER_CLKSOURCE_AUX_PRE4:
-      TA0CTL |= (MC0) | (ID1);
+    case SYSTEM_TIMER_CLKSOURCE_SUB_PRE4:
+      TA0CTL |= (ID1);
       break;
 
-    case SYSTEM_TIMER_CLKSOURCE_AUX_PRE8:
-      TA0CTL |= (MC0) | (ID1) | (ID0);
+    case SYSTEM_TIMER_CLKSOURCE_SUB_PRE8:
+      TA0CTL |= (ID1) | (ID0);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_OFF:
@@ -136,6 +141,12 @@ static inline uint8_t System_TimerSetClockSource(
       break;
   };
 
+  // Reset divider logic
+  TA0CTL |= TACLR;
+
+  // Restart timer
+  TA0CTL |= TA0CTL_MC_copy;
+
   return TRUE;
 }
 
@@ -144,11 +155,14 @@ static inline uint8_t System_TimerSetClockSource(
  *
  * \return Nonzero if configuration was successful, zero otherwise
  */
-static inline uint8_t System_TimerSetCompareMatch(
-    uint8_t compareValue
+static inline unsigned int
+System_TimerSetCompareMatch(
+    System_TimerID  timer,
+    unsigned int    compareValue
     )
 {
   TA0CCR0 = compareValue;
+  TA0CCTL0 &= ~(CAP);
   return TRUE;
 }
 
@@ -157,10 +171,13 @@ static inline uint8_t System_TimerSetCompareMatch(
  *
  * \return Nonzero if the configuration was successful, zero otherwise
  */
-static inline uint8_t System_TimerSetCompareOutputMode(
+static inline unsigned int
+System_TimerSetCompareOutputMode(
+    System_TimerID                timer,
     System_TimerCompareOutputMode outputMode
     )
 {
+  TA0CCTL0 &= ~((OUTMOD2) | (OUTMOD1) | (OUTMOD0) | (OUT));
   return TRUE;
 }
 
@@ -169,11 +186,14 @@ static inline uint8_t System_TimerSetCompareOutputMode(
  *
  * \return Nonzero if the configuration was successful, zero otherwise
  */
-static inline uint8_t
+static inline unsigned int
 System_TimerSetWaveGenMode(
+    System_TimerID          timer,
     System_TimerWaveGenMode waveGenMode
     )
 {
+  TA0CTL &= ~((MC1) | (MC0));
+  TA0CTL |= (MC0);
   return TRUE;
 }
 
@@ -182,8 +202,8 @@ System_TimerSetWaveGenMode(
  */
 void
 System_RegisterCallback(
-    void (*callback)(System_EventType), /**< Pointer to callback function to register */
-    System_EventType  event             /**< Type of event to register the callback for */
+    System_EventCallback  callback, /**< Pointer to callback function to register */
+    System_EventType      event     /**< Type of event to register the callback for */
     );
 
 /**
@@ -197,19 +217,28 @@ System_GetEventCallback(
 /**
  * Enables interrupts for a given event
  */
-static inline uint8_t
+static inline unsigned int
 System_EnableEvent(
     System_EventType  event /**< Type of event to enable interrupts for */
     )
 {
+  // Stop timer when configuring clock source
+  unsigned int TA0CTL_MC_copy = TA0CTL & ((MC1) | (MC0));
+  TA0CTL &= ~((MC1) | (MC0));
+
   switch (event)
   {
-    case SYSTEM_EVENT_TIMER0_COMPAREMATCH: TA0CTL |= (TAIE); break;
+    case SYSTEM_EVENT_TIMER0_COMPAREMATCH:
+      TA0CCTL0 |= (CCIE);
+      break;
     
     default:
       return FALSE;
       break;
   };
+
+  // Restart timer
+  TA0CTL |= TA0CTL_MC_copy;
 
   return TRUE;
 }
@@ -217,19 +246,28 @@ System_EnableEvent(
 /**
  * Disables interrupts for a given event
  */
-static inline uint8_t
+static inline unsigned int
 System_DisableEvent(
     System_EventType  event /** Type of event to disable interrupts for */
     )
 {
+  // Stop timer when configuring clock source
+  unsigned int TA0CTL_MC_copy = TA0CTL & ((MC1) | (MC0));
+  TA0CTL &= ~((MC1) | (MC0));
+
   switch (event)
   {
-    case SYSTEM_EVENT_TIMER0_COMPAREMATCH: TA0CTL &= ~((TAIE)); break;
+    case SYSTEM_EVENT_TIMER0_COMPAREMATCH:
+      TA0CCTL0 &= ~(CCIE);
+      break;
 
     default:
       return FALSE;
       break;
   };
+
+  // Restart timer
+  TA0CTL |= TA0CTL_MC_copy;
 
   return TRUE;
 }
@@ -245,7 +283,10 @@ System_GetTimerCallbackEvent(
   switch (timerID)
   {
     case SYSTEM_TIMER0: return SYSTEM_EVENT_TIMER0_COMPAREMATCH; break;
-    default: return SYSTEM_EVENT_INVALID; break;
+    
+    default:
+      return SYSTEM_EVENT_INVALID;
+      break;
   };
 }
 

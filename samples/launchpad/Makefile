@@ -6,14 +6,14 @@ CORE=430x
 TIMER_ROOT=../..
 TIMER_SOURCE=$(TIMER_ROOT)/src/TimerDriver.c
 
-CFLAGS=-Wall -Werror -mmcu=$(MCU) -mcpu=$(CORE) -mdisable-watchdog
+CFLAGS=-g -Wall -Werror -mmcu=$(MCU) -mcpu=$(CORE) -mdisable-watchdog
 INCLUDE_DIRS=-I. -I$(TIMER_ROOT)/include
 
 RESIDUE= \
 	 $(PROJECT).elf \
 	 TargetSystem.o
 
-$(PROJECT).elf : $(PROJECT).c TargetSystem.o
+$(PROJECT).elf : $(PROJECT).c TargetSystem.o $(TIMER_SOURCE)
 	$(CC) -o $@ $(CFLAGS) $(INCLUDE_DIRS) $(PROJECT).c $(TIMER_SOURCE) TargetSystem.o
 
 TargetSystem.o : TargetSystem.c TargetSystem.h

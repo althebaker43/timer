@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <isr_compat.h>
 
 #include "TargetSystem.h"
 #include "TimerDriver.h"
@@ -9,6 +10,20 @@ static uint8_t events [SYSTEM_NUM_EVENTS] = {FALSE};
 
 int main()
 {
+  // Halt TA0
+  TA0CTL &= ~((MC1) | (MC0));
+
+  // Configure TA0 to run off submaster clock
+  TA0CTL &= ~((TASSEL1) | (TASSEL0));
+  TA0CTL |= (TASSEL1);
+
+  // Initialize LED
+  P1DIR |= 1;
+  P1OUT &= ~(1);
+
+  // Enable interrupts
+  __eint();
+
   // Initialize timer driver
   InitTimers();
 
@@ -25,7 +40,7 @@ int main()
 
   System_EventType eventIter = 0;
   System_EventCallback currentEventCallback = NULL;
-  
+
   while(1)
   {
     for(
@@ -56,4 +71,10 @@ int main()
 void
 ToggleLED()
 {
+  P1OUT ^= 1;
+}
+
+ISR(TIMER0_A0, TimerServiceRoutine)
+{
+  events[SYSTEM_EVENT_TIMER0_COMPAREMATCH] = TRUE;
 }
