@@ -104,6 +104,19 @@ System_TimerGetSourceFrequency(
 }
 
 /**
+ * Provides the maximum counter value for the given timer
+ *
+ * \return Maximum value of timer with given ID
+ */
+static inline unsigned long int
+System_TimerGetMaxValue(
+    System_TimerID  timer
+    )
+{
+  return 256;
+}
+
+/**
  * Sets the clock source for a timer
  *
  * \return Nonzero if configuration was successful, zero otherwise
