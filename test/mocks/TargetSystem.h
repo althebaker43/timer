@@ -96,6 +96,16 @@ System_TimerGetSourceFrequency(
     );
 
 /**
+ * Provides the maximum counter value for the given timer
+ *
+ * \return Maximum value of timer with given ID
+ */
+unsigned long int
+System_TimerGetMaxValue(
+    System_TimerID
+    );
+
+/**
  * Sets the clock source for a timer
  *
  * \return Nonzero if configuration was successful, zero otherwise
@@ -230,6 +240,12 @@ System_GetEventCallback(
 void
 System_SetCoreClockFrequency(
     unsigned long int
+    );
+
+void
+System_SetMaxTimerValue(
+    System_TimerID,
+    unsigned int
     );
 
 #endif /* TARGET_SYSTEM */

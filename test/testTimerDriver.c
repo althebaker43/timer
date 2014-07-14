@@ -59,6 +59,19 @@ TEST_SETUP(TimerDriver)
   timers = NULL;
   numCustomTimerCycles = 0;
   System_SetCoreClockFrequency(1000000);
+
+  unsigned int timerIdx;
+  for(
+      timerIdx = 0;
+      timerIdx < SYSTEM_NUM_TIMERS;
+      timerIdx++
+     )
+  {
+    System_SetMaxTimerValue(
+        timerIdx,
+        256 // 8-bit timer
+        );
+  }
 }
 
 TEST_TEAR_DOWN(TimerDriver)
@@ -380,6 +393,38 @@ TEST(TimerDriver, CycleTimeOverflow)
         (unsigned int)(((UINT_MAX) / 1000) + 1)
         )
       );
+}
+
+TEST(TimerDriver, FastClock)
+{
+  testCreateAllTimers();
+
+  unsigned long int MAX_IDEAL_FREQ_MS_COUNTER = System_TimerGetMaxValue(GetTimerSystemID(timers[0])) * 1000;
+  unsigned long int MAX_CORE_CLOCK_FREQ = ((MAX_IDEAL_FREQ_MS_COUNTER + 1) * 1024) - 1;
+
+  // Maximum core clock frequency that timer can count 1 ms with
+  System_SetCoreClockFrequency(MAX_CORE_CLOCK_FREQ);
+  TEST_ASSERT(SetTimerCycleTimeSec(timers[0], 1));
+
+  System_SetCoreClockFrequency(MAX_CORE_CLOCK_FREQ + 1);
+  TEST_ASSERT_FALSE(SetTimerCycleTimeSec(timers[0], 1));
+}
+
+TEST(TimerDriver, MaxTimerValue)
+{
+  testCreateAllTimers();
+
+  System_SetMaxTimerValue(
+      GetTimerSystemID(timers[0]),
+      65536 // 16-bit timer
+      );
+  
+  TEST_ASSERT(SetTimerCycleTimeMilliSec(timers[0], 100));
+  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE8, System_TimerGetClockSource(GetTimerSystemID(timers[0])));
+  TEST_ASSERT_EQUAL(12500, System_TimerGetCompareValue(GetTimerSystemID(timers[0])));
+  TEST_ASSERT_EQUAL(SYSTEM_TIMER_CLKSOURCE_INT_PRE8, GetTimerClockSource(timers[0]));
+  TEST_ASSERT_EQUAL(12500, GetTimerCompareMatch(timers[0]));
+  TEST_ASSERT_EQUAL(1, GetTimerCompareMatchesPerCycle(timers[0]));
 }
 
 TEST(TimerDriver, HiFreqAccuracy)

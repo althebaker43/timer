@@ -12,6 +12,7 @@ static System_TimerClockSource system_clockSources [SYSTEM_NUM_TIMERS];
 static unsigned int system_compareValues [SYSTEM_NUM_TIMERS];
 static System_TimerCompareOutputMode system_outputModes [SYSTEM_NUM_TIMERS];
 static System_TimerWaveGenMode system_waveGenModes [SYSTEM_NUM_TIMERS];
+static unsigned int system_maxTimerValues [SYSTEM_NUM_TIMERS] = { 256 };
 
 static unsigned int system_events [SYSTEM_NUM_EVENTS] = {FALSE};
 static System_EventCallback system_eventCallbacks [SYSTEM_NUM_EVENTS]; /**< Pointers to timer compare match event callback functions */
@@ -33,6 +34,14 @@ System_TimerGetSourceFrequency(
       return 0;
       break;
   };
+}
+
+unsigned long int
+System_TimerGetMaxValue(
+    System_TimerID  timer
+    )
+{
+  return system_maxTimerValues[timer];
 }
 
 unsigned int
@@ -177,4 +186,13 @@ System_SetCoreClockFrequency(
     )
 {
   coreClockFrequency = newFrequency;
+}
+
+void
+System_SetMaxTimerValue(
+    System_TimerID  timer,
+    unsigned int    newMaxValue
+    )
+{
+  system_maxTimerValues[timer] = newMaxValue;
 }

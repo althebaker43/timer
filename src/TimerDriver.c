@@ -4,11 +4,6 @@
 #include "TimerDriver.h"
 #include "TargetSystem.h"
 
-/**
- * Minimum frequency for a millisecond counter
- */
-#define MAX_IDEAL_FREQ_MS_COUNTER 256000  // 1000 Hz * 256 (timer bit-width)
-
 struct TimerInstance_struct
 {
   System_TimerID                id;                     /**< System ID of timer */
@@ -240,6 +235,7 @@ SetTimerCycleTimeMilliSec(
     return FALSE;
   }
 
+  unsigned long int MAX_IDEAL_FREQ_MS_COUNTER = System_TimerGetMaxValue(instance->id) * 1000;
   unsigned long int idealFrequency = 0;
   unsigned int numMilliSecPerSubCycle = 0;
   unsigned long int clockSourceFrequency = 0;
@@ -248,6 +244,12 @@ SetTimerCycleTimeMilliSec(
   for (;;)
   {
     instance->compareMatchesPerCycle++;
+    
+    if (instance->compareMatchesPerCycle > numMilliSec)
+    {
+      return FALSE;
+    }
+
     numMilliSecPerSubCycle = numMilliSec / instance->compareMatchesPerCycle;
     idealFrequency = (unsigned long int)(MAX_IDEAL_FREQ_MS_COUNTER / numMilliSecPerSubCycle);
 
