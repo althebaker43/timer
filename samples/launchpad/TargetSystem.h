@@ -8,7 +8,7 @@
 #define TRUE 1
 #define FALSE 0
 
-#define SYSTEM_SUB_CLOCK_FREQUENCY 8000000 // Subsystem clock
+#define SYSTEM_SUB_CLOCK_FREQUENCY 1048578 // Subsystem clock
 
 /**
  * Enumeration of all timer modules in system
@@ -109,7 +109,7 @@ System_TimerGetMaxValue(
     System_TimerID  timer
     )
 {
-  return 65536;
+  return 65535;
 }
 
 /**
