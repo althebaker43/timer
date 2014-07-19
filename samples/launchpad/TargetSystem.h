@@ -16,6 +16,7 @@
 typedef enum System_TimerID_enum
 {
   SYSTEM_TIMER0,
+  SYSTEM_TIMER1,
   SYSTEM_NUM_TIMERS
 } System_TimerID;
 
@@ -68,6 +69,7 @@ typedef enum System_TimerCompareOutputMode_enum
 typedef enum System_EventType_enum
 {
   SYSTEM_EVENT_TIMER0_COMPAREMATCH,
+  SYSTEM_EVENT_TIMER1_COMPAREMATCH,
   SYSTEM_NUM_EVENTS,
   SYSTEM_EVENT_INVALID
 } System_EventType;
@@ -123,11 +125,8 @@ System_TimerSetClockSource(
     System_TimerClockSource clockSource
     )
 {
-  // Stop timer when configuring clock source
-  unsigned int TA0CTL_MC_copy = TA0CTL & ((MC1) | (MC0));
-  TA0CTL &= ~((MC1) | (MC0));
-
-  TA0CTL &= ~((ID1) | (ID0));
+  // Initialize copy of timer control register
+  unsigned int TACTL_copy = 0;
 
   switch (clockSource)
   {
@@ -135,15 +134,15 @@ System_TimerSetClockSource(
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_SUB_PRE2:
-      TA0CTL |= (ID0);
+      TACTL_copy |= (ID0);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_SUB_PRE4:
-      TA0CTL |= (ID1);
+      TACTL_copy |= (ID1);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_SUB_PRE8:
-      TA0CTL |= (ID1) | (ID0);
+      TACTL_copy |= (ID1) | (ID0);
       break;
 
     case SYSTEM_TIMER_CLKSOURCE_OFF:
@@ -154,11 +153,53 @@ System_TimerSetClockSource(
       break;
   };
 
-  // Reset divider logic
-  TA0CTL |= TACLR;
+  unsigned int TACTL_MC_copy = 0;
+  switch (timer)
+  {
+    case SYSTEM_TIMER0:
+      // Stop timer when configuring clock source
+      TACTL_MC_copy = TA0CTL & ((MC1) | (MC0));
+      TA0CTL &= ~((MC1) | (MC0));
 
-  // Restart timer
-  TA0CTL |= TA0CTL_MC_copy;
+      // Run off submaster clock
+      TA0CTL &= ~((TASSEL1) | (TASSEL0));
+      TA0CTL |= (TASSEL1);
+
+      // Set input clock frequency divider
+      TA0CTL &= ~((ID1) | (ID0));
+      TA0CTL |= TACTL_copy;
+
+      // Reset divider logic
+      TA0CTL |= TACLR;
+
+      // Restart timer
+      TA0CTL |= TACTL_MC_copy;
+      break;
+
+    case SYSTEM_TIMER1:
+      // Stop timer when configuring clock source
+      TACTL_MC_copy = TA1CTL & ((MC1) | (MC0));
+      TA1CTL &= ~((MC1) | (MC0));
+
+      // Run off submaster clock
+      TA1CTL &= ~((TASSEL1) | (TASSEL0));
+      TA1CTL |= (TASSEL1);
+
+      // Set input clock frequency divider
+      TA1CTL &= ~((ID1) | (ID0));
+      TA1CTL |= TACTL_copy;
+
+      // Reset divider logic
+      TA1CTL |= TACLR;
+
+      // Restart timer
+      TA1CTL |= TACTL_MC_copy;
+      break;
+
+    default:
+      return FALSE;
+      break;
+  };
 
   return TRUE;
 }
@@ -174,8 +215,23 @@ System_TimerSetCompareMatch(
     unsigned int    compareValue
     )
 {
-  TA0CCR0 = compareValue;
-  TA0CCTL0 &= ~(CAP);
+  switch (timer)
+  {
+    case SYSTEM_TIMER0:
+      TA0CCR0 = compareValue;
+      TA0CCTL0 &= ~(CAP);
+      break;
+    
+    case SYSTEM_TIMER1:
+      TA1CCR0 = compareValue;
+      TA1CCTL0 &= ~(CAP);
+      break;
+
+    default:
+      return FALSE;
+      break;
+  };
+
   return TRUE;
 }
 
@@ -190,7 +246,21 @@ System_TimerSetCompareOutputMode(
     System_TimerCompareOutputMode outputMode
     )
 {
-  TA0CCTL0 &= ~((OUTMOD2) | (OUTMOD1) | (OUTMOD0) | (OUT));
+  switch (timer)
+  {
+    case SYSTEM_TIMER0:
+      TA0CCTL0 &= ~((OUTMOD2) | (OUTMOD1) | (OUTMOD0) | (OUT));
+      break;
+
+    case SYSTEM_TIMER1:
+      TA1CCTL0 &= ~((OUTMOD2) | (OUTMOD1) | (OUTMOD0) | (OUT));
+      break;
+
+    default:
+      return FALSE;
+      break;
+  };
+
   return TRUE;
 }
 
@@ -205,8 +275,23 @@ System_TimerSetWaveGenMode(
     System_TimerWaveGenMode waveGenMode
     )
 {
-  TA0CTL &= ~((MC1) | (MC0));
-  TA0CTL |= (MC0);
+  switch (timer)
+  {
+    case SYSTEM_TIMER0:
+      TA0CTL &= ~((MC1) | (MC0));
+      TA0CTL |= (MC0);
+      break;
+
+    case SYSTEM_TIMER1:
+      TA1CTL &= ~((MC1) | (MC0));
+      TA1CTL |= (MC0);
+      break;
+
+    default:
+      return FALSE;
+      break;
+  };
+
   return TRUE;
 }
 
@@ -235,14 +320,30 @@ System_EnableEvent(
     System_EventType  event /**< Type of event to enable interrupts for */
     )
 {
-  // Stop timer when configuring clock source
-  unsigned int TA0CTL_MC_copy = TA0CTL & ((MC1) | (MC0));
-  TA0CTL &= ~((MC1) | (MC0));
+  unsigned int TACTL_MC_copy = 0;
 
   switch (event)
   {
     case SYSTEM_EVENT_TIMER0_COMPAREMATCH:
+      // Stop timer when configuring clock source
+      TACTL_MC_copy = TA0CTL & ((MC1) | (MC0));
+      TA0CTL &= ~((MC1) | (MC0));
+
       TA0CCTL0 |= (CCIE);
+
+      // Restart timer
+      TA0CTL |= TACTL_MC_copy;
+      break;
+    
+    case SYSTEM_EVENT_TIMER1_COMPAREMATCH:
+      // Stop timer when configuring clock source
+      TACTL_MC_copy = TA1CTL & ((MC1) | (MC0));
+      TA1CTL &= ~((MC1) | (MC0));
+
+      TA1CCTL0 |= (CCIE);
+
+      // Restart timer
+      TA1CTL |= TACTL_MC_copy;
       break;
     
     default:
@@ -250,8 +351,8 @@ System_EnableEvent(
       break;
   };
 
-  // Restart timer
-  TA0CTL |= TA0CTL_MC_copy;
+  // Set global interrupt enable
+  __eint();
 
   return TRUE;
 }
@@ -264,23 +365,36 @@ System_DisableEvent(
     System_EventType  event /** Type of event to disable interrupts for */
     )
 {
-  // Stop timer when configuring clock source
-  unsigned int TA0CTL_MC_copy = TA0CTL & ((MC1) | (MC0));
-  TA0CTL &= ~((MC1) | (MC0));
+  unsigned int TACTL_MC_copy = 0;
 
   switch (event)
   {
     case SYSTEM_EVENT_TIMER0_COMPAREMATCH:
-      TA0CCTL0 &= ~(CCIE);
-      break;
+      // Stop timer when configuring clock source
+      TACTL_MC_copy = TA0CTL & ((MC1) | (MC0));
+      TA0CTL &= ~((MC1) | (MC0));
 
+      TA0CCTL0 &= ~(CCIE);
+
+      // Restart timer
+      TA0CTL |= TACTL_MC_copy;
+      break;
+    
+    case SYSTEM_EVENT_TIMER1_COMPAREMATCH:
+      // Stop timer when configuring clock source
+      TACTL_MC_copy = TA1CTL & ((MC1) | (MC0));
+      TA1CTL &= ~((MC1) | (MC0));
+
+      TA1CCTL0 &= ~(CCIE);
+
+      // Restart timer
+      TA1CTL |= TACTL_MC_copy;
+      break;
+    
     default:
       return FALSE;
       break;
   };
-
-  // Restart timer
-  TA0CTL |= TA0CTL_MC_copy;
 
   return TRUE;
 }
@@ -296,6 +410,7 @@ System_GetTimerCallbackEvent(
   switch (timerID)
   {
     case SYSTEM_TIMER0: return SYSTEM_EVENT_TIMER0_COMPAREMATCH; break;
+    case SYSTEM_TIMER1: return SYSTEM_EVENT_TIMER1_COMPAREMATCH; break;
     
     default:
       return SYSTEM_EVENT_INVALID;

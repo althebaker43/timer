@@ -4,39 +4,47 @@
 #include "TargetSystem.h"
 #include "TimerDriver.h"
 
-static void ToggleLED();
+static void ToggleLED1();
+static void ToggleLED2();
 
 static uint8_t events [SYSTEM_NUM_EVENTS] = {FALSE};
 
 int main()
 {
-  // Halt TA0
-  TA0CTL &= ~((MC1) | (MC0));
-
-  // Configure TA0 to run off submaster clock
-  TA0CTL &= ~((TASSEL1) | (TASSEL0));
-  TA0CTL |= (TASSEL1);
-
-  // Initialize LED
+  // Initialize LEDs
   P1DIR |= 1;
   P1OUT &= ~(1);
-
-  // Enable interrupts
-  __eint();
+  P4DIR |= (1<<7);
+  P4OUT &= ~(1<<7);
 
   // Initialize timer driver
   InitTimers();
 
-  TimerInstance* timer = CreateTimer();
+  // Initialize timer 1
+  TimerInstance* timer1 = CreateTimer();
   SetTimerCycleTimeMilliSec(
-      timer,
+      timer1,
       500
       );
   SetTimerCycleHandler(
-      timer,
-      ToggleLED
+      timer1,
+      ToggleLED1
       );
-  StartTimer(timer);
+
+  // Initialize timer 2
+  TimerInstance* timer2 = CreateTimer();
+  SetTimerCycleTimeMilliSec(
+      timer2,
+      333
+      );
+  SetTimerCycleHandler(
+      timer2,
+      ToggleLED2
+      );
+
+  // Start timers
+  StartTimer(timer1);
+  StartTimer(timer2);
 
   System_EventType eventIter = 0;
   System_EventCallback currentEventCallback = NULL;
@@ -69,12 +77,23 @@ int main()
 }
 
 void
-ToggleLED()
+ToggleLED1()
 {
   P1OUT ^= 1;
 }
 
-ISR(TIMER0_A0, TimerServiceRoutine)
+void
+ToggleLED2()
+{
+  P4OUT ^= (1<<7);
+}
+
+ISR(TIMER0_A0, Timer1ServiceRoutine)
 {
   events[SYSTEM_EVENT_TIMER0_COMPAREMATCH] = TRUE;
+}
+
+ISR(TIMER1_A0, Timer2ServiceRoutine)
+{
+  events[SYSTEM_EVENT_TIMER1_COMPAREMATCH] = TRUE;
 }
