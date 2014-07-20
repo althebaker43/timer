@@ -423,3 +423,24 @@ SetTimerCycleHandler(
   instance->cycleHandler = handler;
   return TRUE;
 }
+
+unsigned int
+WaitForTimer(
+    TimerInstance*  instance
+    )
+{
+  if (instance->status != TIMER_STATUS_RUNNING)
+  {
+    StartTimer(instance);
+  }
+
+  while (instance->numCycles == 0)
+  {
+    // TODO: implement better way to test this
+#ifdef TIMER_DEBUG
+    System_TimerWaitCheck(instance->id);
+#endif /* TIMER_DEBUG */
+  }
+
+  return TRUE;
+}

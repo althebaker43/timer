@@ -209,4 +209,18 @@ SetTimerCycleHandler(
     TimerCycleHandler handler   /**< Handler call on each cycle completion */
     );
 
+/**
+ * Blocks until timer has finished a single cycle
+ *
+ * \note If the timer has not yet been started, this function will start it. If
+ * the timer has not yet been configured, this function will return a nonzero
+ * value.
+ *
+ * \returns Nonzero if timer has finished, zero otherwise
+ */
+unsigned int
+WaitForTimer(
+    TimerInstance*  instance
+    );
+
 #endif /* TIMER_DRIVER */

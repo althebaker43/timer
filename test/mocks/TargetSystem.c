@@ -13,6 +13,7 @@ static unsigned int system_compareValues [SYSTEM_NUM_TIMERS];
 static System_TimerCompareOutputMode system_outputModes [SYSTEM_NUM_TIMERS];
 static System_TimerWaveGenMode system_waveGenModes [SYSTEM_NUM_TIMERS];
 static unsigned int system_maxTimerValues [SYSTEM_NUM_TIMERS] = { 256 };
+static unsigned int system_numWaitChecks [SYSTEM_NUM_TIMERS] = { 0 };
 
 static unsigned int system_events [SYSTEM_NUM_EVENTS] = {FALSE};
 static System_EventCallback system_eventCallbacks [SYSTEM_NUM_EVENTS]; /**< Pointers to timer compare match event callback functions */
@@ -178,6 +179,32 @@ System_GetEventCallback(
   return system_eventCallbacks[event];
 }
 
+void
+System_TimerWaitCheck(
+    System_TimerID  timer
+    )
+{
+  switch (timer)
+  {
+    case SYSTEM_TIMER0: (*(system_eventCallbacks[SYSTEM_EVENT_TIMER0_COMPAREMATCH]))(SYSTEM_EVENT_TIMER0_COMPAREMATCH); break;
+    case SYSTEM_TIMER1: (*(system_eventCallbacks[SYSTEM_EVENT_TIMER1_COMPAREMATCH]))(SYSTEM_EVENT_TIMER1_COMPAREMATCH); break;
+
+    default:
+      return;
+      break;
+  };
+
+  system_numWaitChecks[timer]++;
+}
+
+unsigned int
+System_GetNumTimerWaitChecks(
+    System_TimerID  timer
+    )
+{
+  return system_numWaitChecks[timer];
+}
+
 // Test manipulators (not for production use)
 
 void
@@ -195,4 +222,12 @@ System_SetMaxTimerValue(
     )
 {
   system_maxTimerValues[timer] = newMaxValue;
+}
+
+void
+System_ClearNumTimerWaitChecks(
+    System_TimerID timer
+    )
+{
+  system_numWaitChecks[timer] = 0;
 }

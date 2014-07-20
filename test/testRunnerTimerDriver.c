@@ -30,6 +30,10 @@ TEST_GROUP_RUNNER(TimerDriver)
   RUN_TEST_CASE(TimerDriver, CompareMatchMultiTimers);
   RUN_TEST_CASE(TimerDriver, CompareOutputMode);
   RUN_TEST_CASE(TimerDriver, CustomCycleHandler);
+  RUN_TEST_CASE(TimerDriver, SingleShot);
+  RUN_TEST_CASE(TimerDriver, SingleShotAutoStart);
+  RUN_TEST_CASE(TimerDriver, NoSingleShotWithoutConfig);
+  RUN_TEST_CASE(TimerDriver, StopAfterSingleShot);
 }
 
 static void RunAllTests()

@@ -38,6 +38,8 @@ INCLUDE_DIRS =\
   
 include $(UNITY_BUILD_HOME)/MakefileWorker.mk
 
+CFLAGS+=-DTIMER_DEBUG
+
 AVR_GCC=avr-gcc
 
 AVR_RESIDUE= \

@@ -71,6 +71,9 @@ TEST_SETUP(TimerDriver)
         timerIdx,
         256 // 8-bit timer
         );
+    System_ClearNumTimerWaitChecks(
+        timerIdx
+        );
   }
 }
 
@@ -570,4 +573,45 @@ TEST(TimerDriver, CustomCycleHandler)
   (*(System_GetEventCallback(SYSTEM_EVENT_TIMER0_COMPAREMATCH)))(SYSTEM_EVENT_TIMER0_COMPAREMATCH);
   TEST_ASSERT_EQUAL(1, GetNumTimerCycles(timers[0]));
   TEST_ASSERT_EQUAL(1, numCustomTimerCycles);
+}
+
+TEST(TimerDriver, SingleShot)
+{
+  testCreateAllTimers();
+
+  SetTimerCycleTimeMilliSec(timers[0], 500);
+  StartTimer(timers[0]);
+  
+  TEST_ASSERT_EQUAL(0, GetNumTimerCycles(timers[0]));
+  TEST_ASSERT(WaitForTimer(timers[0]));
+  TEST_ASSERT_EQUAL(1, GetNumTimerCycles(timers[0]));
+  TEST_ASSERT_EQUAL(0, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL(2, System_GetNumTimerWaitChecks(GetTimerSystemID(timers[0])));
+}
+
+TEST(TimerDriver, SingleShotAutoStart)
+{
+  testCreateAllTimers();
+
+  SetTimerCycleTimeMilliSec(timers[0], 500);
+  
+  TEST_ASSERT_EQUAL(0, GetNumTimerCycles(timers[0]));
+  TEST_ASSERT(WaitForTimer(timers[0]));
+  TEST_ASSERT_EQUAL(1, GetNumTimerCycles(timers[0]));
+  TEST_ASSERT_EQUAL(0, GetNumTimerCompareMatches(timers[0]));
+  TEST_ASSERT_EQUAL(2, System_GetNumTimerWaitChecks(GetTimerSystemID(timers[0])));
+}
+
+TEST(TimerDriver, NoSingleShotWithoutConfig)
+{
+  TEST_IGNORE();
+
+  testCreateAllTimers();
+
+  TEST_ASSERT_FALSE(WaitForTimer(timers[0]));
+}
+
+TEST(TimerDriver, StopAfterSingleShot)
+{
+  TEST_IGNORE();
 }

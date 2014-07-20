@@ -235,6 +235,16 @@ System_GetEventCallback(
     System_EventType
     );
 
+void
+System_TimerWaitCheck(
+    System_TimerID
+    );
+
+unsigned int
+System_GetNumTimerWaitChecks(
+    System_TimerID
+    );
+
 // Test manipulators (not for production use)
 
 void
@@ -246,6 +256,11 @@ void
 System_SetMaxTimerValue(
     System_TimerID,
     unsigned int
+    );
+
+void
+System_ClearNumTimerWaitChecks(
+    System_TimerID
     );
 
 #endif /* TARGET_SYSTEM */
