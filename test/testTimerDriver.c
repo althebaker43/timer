@@ -604,8 +604,6 @@ TEST(TimerDriver, SingleShotAutoStart)
 
 TEST(TimerDriver, NoSingleShotWithoutConfig)
 {
-  TEST_IGNORE();
-
   testCreateAllTimers();
 
   TEST_ASSERT_FALSE(WaitForTimer(timers[0]));
@@ -613,5 +611,11 @@ TEST(TimerDriver, NoSingleShotWithoutConfig)
 
 TEST(TimerDriver, StopAfterSingleShot)
 {
-  TEST_IGNORE();
+  testCreateAllTimers();
+
+  SetTimerCycleTimeMilliSec(timers[0], 500);
+  
+  TEST_ASSERT(WaitForTimer(timers[0]));
+
+  TEST_ASSERT_EQUAL(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
 }

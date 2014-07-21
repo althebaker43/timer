@@ -188,8 +188,8 @@ unsigned int
 StartTimer(TimerInstance* instance)
 {
   if (
-      (instance->compareMatch == 0) &&
-      (instance->compareMatchesPerCycle)
+      (instance->compareMatch == 0) ||
+      (instance->compareMatchesPerCycle == 0)
      )
   {
     return FALSE;
@@ -431,7 +431,12 @@ WaitForTimer(
 {
   if (instance->status != TIMER_STATUS_RUNNING)
   {
-    StartTimer(instance);
+    unsigned int startResult = StartTimer(instance);
+
+    if (startResult == FALSE)
+    {
+      return FALSE;
+    }
   }
 
   while (instance->numCycles == 0)
@@ -441,6 +446,8 @@ WaitForTimer(
     System_TimerWaitCheck(instance->id);
 #endif /* TIMER_DEBUG */
   }
+
+  StopTimer(instance);
 
   return TRUE;
 }
