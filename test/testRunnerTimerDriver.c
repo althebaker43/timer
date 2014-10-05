@@ -34,6 +34,7 @@ TEST_GROUP_RUNNER(TimerDriver)
   RUN_TEST_CASE(TimerDriver, SingleShotAutoStart);
   RUN_TEST_CASE(TimerDriver, NoSingleShotWithoutConfig);
   RUN_TEST_CASE(TimerDriver, StopAfterSingleShot);
+  RUN_TEST_CASE(TimerDriver, ResetOnNextSingleShot);
 }
 
 static void RunAllTests()

@@ -619,3 +619,21 @@ TEST(TimerDriver, StopAfterSingleShot)
 
   TEST_ASSERT_EQUAL(TIMER_STATUS_STOPPED, GetTimerStatus(timers[0]));
 }
+
+TEST(TimerDriver, ResetOnNextSingleShot)
+{
+  TEST_IGNORE_MESSAGE("Timer reset after single-shot not yet implemented.");
+
+  testCreateAllTimers();
+
+  SetTimerCycleTimeMilliSec(timers[0], 500);
+  
+  TEST_ASSERT_EQUAL(0, GetNumTimerCycles(timers[0]));
+  TEST_ASSERT(WaitForTimer(timers[0]));
+  TEST_ASSERT_EQUAL(2, System_GetNumTimerWaitChecks(GetTimerSystemID(timers[0])));
+  TEST_ASSERT_EQUAL(1, GetNumTimerCycles(timers[0]));
+  
+  TEST_ASSERT(WaitForTimer(timers[0]));
+  TEST_ASSERT_EQUAL(4, System_GetNumTimerWaitChecks(GetTimerSystemID(timers[0])));
+  TEST_ASSERT_EQUAL(1, GetNumTimerCycles(timers[0]));
+}
